@@ -1,26 +1,169 @@
-import {NextRequest,NextResponse} from 'next/server';
-import {initialized,read,save,spending,id,allocate,importCSV,validDate,approve,currentApproval,reviewErrors,Fact} from '@/lib/store';
-import {generate} from '@/lib/agent';
-export const runtime='nodejs';
-export const dynamic='force-dynamic';
-function output(){const db=initialized();try{const s=read(db);return {...s,reports:s.grants.map(g=>({grantId:g.id,...spending(s,g.id)})),currentApprovals:s.grants.map(g=>currentApproval(s,g.id)).filter(Boolean),reviewErrors:Object.fromEntries(s.grants.map(g=>[g.id,reviewErrors(s,g.id)])),liveAvailable:!!process.env.OPENAI_API_KEY};}finally{db.close();}}
-export async function GET(){return NextResponse.json(output());}
-export async function POST(req:NextRequest){
- const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)return NextResponse.json({error:'Cross-origin mutation rejected.'},{status:403});
- const db=initialized();try{const b=await req.json();const s=read(db);let message='Changes saved.';
- switch(b.action){case 'source':{if(typeof b.name!=='string'||!b.name.trim()||typeof b.text!=='string'||!b.text.trim()||b.text.length>100000||!validDate(b.start)||!validDate(b.end)||b.start>b.end)throw Error('Provide a name, text (up to 100,000 characters), and valid period.');const sourceId=id();s.sources.push({id:sourceId,name:b.name.trim(),text:b.text,periodStart:b.start,periodEnd:b.end});b.text.split(/\n/).forEach((line:string,i:number)=>{if(line.trim())s.facts.push({id:id(),sourceId,excerpt:line.trim(),location:`Line ${i+1}`,kind:/\baim|\bgoal|\bplan to|\bwill\b/i.test(line)?'goal':'achieved',approved:false});});message='Source imported. Candidate lines require staff review.';break;}
- case 'fact':{const f=s.facts.find(f=>f.id===b.id);if(!f)throw Error('Unknown fact.');if(b.kind!==undefined){if(!['goal','achieved'].includes(b.kind))throw Error('Invalid fact type.');f.kind=b.kind as Fact['kind'];}f.approved=b.approved===true;break;}
- case 'generate':{const q=s.questions.find(q=>q.id===b.id);if(!q)throw Error('Unknown question.');const d=await generate(s,q,b.live===true);s.drafts=s.drafts.filter(x=>x.questionId!==q.id);s.drafts.push(d);message=`Version ${d.version} generated · ${d.mode}.`;break;}
- case 'edit':{const d=s.drafts.find(d=>d.id===b.id);if(!d)throw Error('Unknown draft.');if(!Array.isArray(b.claims)||b.claims.some((c:{text:unknown;factIds:unknown})=>typeof c.text!=='string'||!Array.isArray(c.factIds)||c.factIds.some((x:unknown)=>typeof x!=='string')))throw Error('Invalid claim structure.');d.claims=b.claims;d.gaps=[];d.version++;break;}
- case 'csv':{if(typeof b.text!=='string'||b.text.length>1000000)throw Error('CSV exceeds 1 MB.');const result=importCSV(s,b.text);message=`${result.imported} imported · ${result.duplicates} duplicates skipped${result.errors.length?' · '+result.errors.join(' '):''}`;break;}
- case 'allocate':allocate(s,b.transactionId,b.grantId,b.category,Number(b.cents));break;
- case 'unallocate':s.allocations=s.allocations.filter(a=>a.id!==b.id);break;
- case 'approve':approve(s,b.grantId,String(b.reviewer||''));message='Approved snapshot sealed. Any content or evidence change requires a new approval.';break;
- default:throw Error('Unknown action.');}
- // Reject lost updates after a live agent call. All synchronous changes share one event-loop turn.
- if(b.action==='generate'&&b.live===true&&JSON.stringify(read(db))!==JSON.stringify({...s,drafts:read(db).drafts})){
- const latest=read(db);const before=JSON.stringify({...s,drafts:[]});if(JSON.stringify({...latest,drafts:[]})!==before)throw Error('Workspace changed during generation. Please retry.');
- }
- save(db,s);return NextResponse.json({message,...output()});
- }catch(error){return NextResponse.json({error:error instanceof Error?error.message:'Request failed.'},{status:400});}finally{db.close();}
+import { NextRequest, NextResponse } from "next/server";
+import {
+  initialized,
+  read,
+  save,
+  spending,
+  id,
+  allocate,
+  importCSV,
+  validDate,
+  approve,
+  currentApproval,
+  reviewErrors,
+  Fact,
+  hash,
+  validateDraft,
+} from "@/lib/store";
+import { generate } from "@/lib/agent";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+function output() {
+  const db = initialized();
+  try {
+    const s = read(db);
+    return {
+      ...s,
+      reports: s.grants.map((g) => ({ grantId: g.id, ...spending(s, g.id) })),
+      currentApprovals: s.grants
+        .map((g) => currentApproval(s, g.id))
+        .filter(Boolean),
+      reviewErrors: Object.fromEntries(
+        s.grants.map((g) => [g.id, reviewErrors(s, g.id)]),
+      ),
+      draftErrors: Object.fromEntries(
+        s.drafts.map((d) => [d.id, validateDraft(s, d)]),
+      ),
+      liveAvailable: !!process.env.OPENAI_API_KEY,
+    };
+  } finally {
+    db.close();
+  }
+}
+export async function GET() {
+  return NextResponse.json(output());
+}
+export async function POST(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  if (origin && new URL(origin).host !== req.headers.get("host"))
+    return NextResponse.json(
+      { error: "Cross-origin mutation rejected." },
+      { status: 403 },
+    );
+  const db = initialized();
+  try {
+    const b = await req.json();
+    const s = read(db);
+    const initialHash = hash(s);
+    let message = "Changes saved.";
+    switch (b.action) {
+      case "source": {
+        if (
+          typeof b.name !== "string" ||
+          !b.name.trim() ||
+          typeof b.text !== "string" ||
+          !b.text.trim() ||
+          b.text.length > 100000 ||
+          !validDate(b.start) ||
+          !validDate(b.end) ||
+          b.start > b.end
+        )
+          throw Error(
+            "Provide a name, text (up to 100,000 characters), and valid period.",
+          );
+        const sourceId = id();
+        s.sources.push({
+          id: sourceId,
+          name: b.name.trim(),
+          text: b.text,
+          periodStart: b.start,
+          periodEnd: b.end,
+        });
+        b.text.split(/\n/).forEach((line: string, i: number) => {
+          if (line.trim())
+            s.facts.push({
+              id: id(),
+              sourceId,
+              excerpt: line.trim(),
+              location: `Line ${i + 1}`,
+              kind: /\baim|\bgoal|\bplan to|\bwill\b/i.test(line)
+                ? "goal"
+                : "achieved",
+              approved: false,
+            });
+        });
+        message = "Source imported. Candidate lines require staff review.";
+        break;
+      }
+      case "fact": {
+        const f = s.facts.find((f) => f.id === b.id);
+        if (!f) throw Error("Unknown fact.");
+        if (b.kind !== undefined) {
+          if (!["goal", "achieved"].includes(b.kind))
+            throw Error("Invalid fact type.");
+          f.kind = b.kind as Fact["kind"];
+        }
+        f.approved = b.approved === true;
+        break;
+      }
+      case "generate": {
+        const q = s.questions.find((q) => q.id === b.id);
+        if (!q) throw Error("Unknown question.");
+        const d = await generate(s, q, b.live === true);
+        s.drafts = s.drafts.filter((x) => x.questionId !== q.id);
+        s.drafts.push(d);
+        message = `Version ${d.version} generated · ${d.mode}.`;
+        break;
+      }
+      case "edit": {
+        const d = s.drafts.find((d) => d.id === b.id);
+        if (!d) throw Error("Unknown draft.");
+        if (
+          !Array.isArray(b.claims) ||
+          b.claims.some(
+            (c: { text: unknown; factIds: unknown }) =>
+              typeof c.text !== "string" ||
+              !Array.isArray(c.factIds) ||
+              c.factIds.some((x: unknown) => typeof x !== "string"),
+          )
+        )
+          throw Error("Invalid claim structure.");
+        d.claims = b.claims;
+        d.gaps = [];
+        d.version++;
+        break;
+      }
+      case "csv": {
+        if (typeof b.text !== "string" || b.text.length > 1000000)
+          throw Error("CSV exceeds 1 MB.");
+        const result = importCSV(s, b.text);
+        message = `${result.imported} imported · ${result.duplicates} duplicates skipped${result.errors.length ? " · " + result.errors.join(" ") : ""}`;
+        break;
+      }
+      case "allocate":
+        allocate(s, b.transactionId, b.grantId, b.category, Number(b.cents));
+        break;
+      case "unallocate":
+        s.allocations = s.allocations.filter((a) => a.id !== b.id);
+        break;
+      case "approve":
+        approve(s, b.grantId, String(b.reviewer || ""));
+        message =
+          "Approved snapshot sealed. Any content or evidence change requires a new approval.";
+        break;
+      default:
+        throw Error("Unknown action.");
+    }
+    if (hash(read(db)) !== initialHash)
+      throw Error("Workspace changed during generation. Please retry.");
+    save(db, s);
+    return NextResponse.json({ message, ...output() });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Request failed." },
+      { status: 400 },
+    );
+  } finally {
+    db.close();
+  }
 }
