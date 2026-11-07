@@ -20,3 +20,19 @@ npm run build
 ```
 
 The runner uses only fictional data in `data/playwright.sqlite`, a loopback server, and an empty API-key environment. Fixture-mode compatibility is verified; Part 3 cannot be called fully accepted until the live-generation criterion has execution evidence.
+
+## Offline SDK checks and prepared live check
+
+`tests/agent-runtime.test.ts` runs the installed Agents SDK with a scripted model provider, the actual three application tools, and the actual Part 2 validator/approval engine. Its six checks passed: correct tool results and valid output; omitted spending tool rejected; invented/unapproved claims block approval; malformed structured output rejected; repeated tool calls stop after five turns; and provider failure leaves the caller's workspace unchanged. Network access is disabled in that test process. These checks exercise orchestration and deterministic safeguards; they do not establish real model behavior or provider availability. Model-provider configuration is described in the [official OpenAI documentation](https://developers.openai.com/api/docs/guides/agents/models).
+
+After adding those checks, `npm test` passed 36 engine/SDK/acceptance tests and 3 standalone component checks, with the same two server-dependent JSDOM tests skipped by default. Typecheck passed. The live-check opt-in refusal was also verified.
+
+The remaining provider check is prepared in `tests/live-agent-check.ts`. It generates one answer from fictional in-memory seed data, runs `validateDraft`, verifies that generation preserved the input, and tests approval with a fixture answer for the second question. It prints a small acceptance receipt, never an API key, and does not write to SQLite. The existing generator limits the agent loop to five turns with a 45-second signal; this is not a dollar spending cap.
+
+Run only after authorizing API usage and privately configuring `OPENAI_API_KEY` in `.env.local` or the environment:
+
+```sh
+GRANTPROOF_ALLOW_LIVE_CHECK=1 node --import tsx tests/live-agent-check.ts
+```
+
+Without the explicit opt-in, the script refuses before attempting generation. No live call has been made during this work; the application's key-presence check returned false.
