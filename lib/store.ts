@@ -141,6 +141,8 @@ export function read(db: Database.Database): State {
 }
 export function save(db: Database.Database, s: State) {
   const approvals = db.transaction(() => {
+    // Reject unsafe totals before replacing any saved records.
+    for (const grant of s.grants) spending(s, grant.id);
     const priorApprovals = new Map(read(db).approvals.map((a) => [a.id, a]));
     const now = new Date().toISOString();
     const validity = new Map<string, { ready: boolean; hash: string }>();
@@ -194,29 +196,42 @@ export function validDate(s: string) {
     new Date(s).toISOString().slice(0, 10) === s
   );
 }
+function addCents(total: number, amount: number) {
+  const next = total + amount;
+  if (
+    !Number.isSafeInteger(total) ||
+    !Number.isSafeInteger(amount) ||
+    !Number.isSafeInteger(next)
+  )
+    throw Error("Money total exceeds the supported integer-cent range.");
+  return next;
+}
 export function spending(s: State, grantId: string) {
-  const g = s.grants.find((g) => g.id === grantId)!;
+  const g = s.grants.find((g) => g.id === grantId);
+  if (!g) throw Error("Unknown grant.");
   const rows = Object.entries(g.categories).map(([category, budget]) => {
+    if (!Number.isSafeInteger(budget) || budget < 0)
+      throw Error("Grant budgets must use nonnegative integer cents.");
     const spent = s.allocations
-      .filter(
-        (a) =>
+      .filter((a) => {
+        const t = s.transactions.find((t) => t.id === a.transactionId);
+        return (
           a.grantId === g.id &&
           a.category === category &&
-          inPeriod(
-            s.transactions.find((t) => t.id === a.transactionId)!.date,
-            g,
-          ),
-      )
-      .reduce((n, a) => n + a.cents, 0);
+          t &&
+          inPeriod(t.date, g)
+        );
+      })
+      .reduce((n, a) => addCents(n, a.cents), 0);
     return {
       category,
       budget,
       spent,
-      balance: budget - spent,
+      balance: addCents(budget, -spent),
       risk:
         spent > budget
           ? "Over budget"
-          : spent >= budget * 0.8
+          : budget > 0 && BigInt(spent) * 5n >= BigInt(budget) * 4n
             ? "Near limit"
             : "On track",
     };
@@ -225,9 +240,9 @@ export function spending(s: State, grantId: string) {
     start: g.start,
     end: g.end,
     rows,
-    budget: rows.reduce((n, r) => n + r.budget, 0),
-    spent: rows.reduce((n, r) => n + r.spent, 0),
-    balance: rows.reduce((n, r) => n + r.balance, 0),
+    budget: rows.reduce((n, r) => addCents(n, r.budget), 0),
+    spent: rows.reduce((n, r) => addCents(n, r.spent), 0),
+    balance: rows.reduce((n, r) => addCents(n, r.balance), 0),
   };
 }
 export function allocate(
@@ -243,20 +258,33 @@ export function allocate(
     !t ||
     !g ||
     !Object.hasOwn(g.categories, category) ||
+    !Number.isSafeInteger(t.cents) ||
+    t.cents <= 0 ||
+    !validDate(t.date) ||
     !Number.isSafeInteger(cents) ||
     cents <= 0
   )
     throw Error("Choose a valid transaction, category and positive amount.");
+  if (
+    s.allocations.some(
+      (a) =>
+        a.transactionId === transactionId &&
+        (!Number.isSafeInteger(a.cents) || a.cents <= 0),
+    )
+  )
+    throw Error(
+      "Resolve invalid allocation amounts before allocating this transaction.",
+    );
   if (!inPeriod(t.date, g))
     throw Error("Transaction is outside the funder period.");
   if (
     s.allocations
       .filter((a) => a.transactionId === transactionId)
-      .reduce((n, a) => n + a.cents, 0) +
-      cents >
-    t.cents
+      .reduce((n, a) => addCents(n, a.cents), 0) >
+    t.cents - cents
   )
     throw Error("Allocation exceeds the transaction amount across grants.");
+  addCents(spending(s, grantId).spent, cents);
   s.allocations.push({ id: id(), transactionId, grantId, category, cents });
 }
 // Strict quoted fields: quoted commas/newlines and escaped quotes are data;
@@ -461,16 +489,57 @@ export function reviewErrors(s: State, grantId: string) {
   });
   if (snap.report.rows.some((r) => r.balance < 0))
     errors.push("Resolve over-budget categories.");
-  if (
-    s.transactions.some(
-      (t) =>
-        inPeriod(t.date, snap.grant) &&
-        s.allocations
-          .filter((a) => a.transactionId === t.id)
-          .reduce((n, a) => n + a.cents, 0) < t.cents,
+  for (const allocation of s.allocations) {
+    const transaction = s.transactions.find(
+      (t) => t.id === allocation.transactionId,
+    );
+    if (
+      allocation.grantId !== grantId &&
+      (!transaction || !inPeriod(transaction.date, snap.grant))
     )
-  )
-    errors.push("Resolve unallocated transactions in the reporting period.");
+      continue;
+    const allocatedGrant = s.grants.find((g) => g.id === allocation.grantId);
+    if (
+      !transaction ||
+      !allocatedGrant ||
+      !Object.hasOwn(allocatedGrant.categories, allocation.category)
+    )
+      errors.push("Resolve invalid allocation categories or references.");
+    if (!Number.isSafeInteger(allocation.cents) || allocation.cents <= 0)
+      errors.push("Resolve invalid allocation amounts.");
+    if (
+      transaction &&
+      allocatedGrant &&
+      (!validDate(transaction.date) ||
+        !inPeriod(transaction.date, allocatedGrant))
+    )
+      errors.push("Resolve out-of-period or invalid-date allocations.");
+  }
+  for (const transaction of s.transactions.filter((t) =>
+    inPeriod(t.date, snap.grant),
+  )) {
+    if (
+      !Number.isSafeInteger(transaction.cents) ||
+      transaction.cents <= 0 ||
+      !validDate(transaction.date)
+    )
+      errors.push("Resolve invalid transaction amounts or dates.");
+    try {
+      const allocated = s.allocations
+        .filter((a) => a.transactionId === transaction.id)
+        .reduce((n, a) => addCents(n, a.cents), 0);
+      if (allocated < transaction.cents)
+        errors.push(
+          "Resolve unallocated transactions in the reporting period.",
+        );
+      if (allocated > transaction.cents)
+        errors.push("Resolve over-allocated transactions across grants.");
+    } catch {
+      errors.push(
+        "Resolve allocation totals outside the supported integer-cent range.",
+      );
+    }
+  }
   return [...new Set(errors)];
 }
 export function approve(s: State, grantId: string, reviewer: string) {
