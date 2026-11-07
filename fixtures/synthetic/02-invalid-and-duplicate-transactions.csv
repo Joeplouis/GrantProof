@@ -1,0 +1,8 @@
+id,date,payee,amount
+BAD_DATE,2026-02-30,Invalid calendar day,20.00
+NEGATIVE,2026-03-04,Negative spending,-10.00
+BAD_AMT,2026-05-16,Too many decimals,12.345
+MISSING,2026-05-22,,15.00
+T001,2026-01-01,Changed payee compared with seed,12000.00
+T001,2026-01-01,Coaching team,12000.00
+ALT_SEED_T001,2026-01-01,Coaching team,12000.00
