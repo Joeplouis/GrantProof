@@ -24,6 +24,16 @@ export default defineConfig({
       name: "mobile-chrome",
       use: { ...devices["Pixel 7"], channel: "chrome" },
     },
+    {
+      name: "compact-phone-chrome",
+      testMatch: "visual-review.spec.ts",
+      use: {
+        ...devices["Pixel 7"],
+        viewport: { width: 360, height: 800 },
+        deviceScaleFactor: 1,
+        channel: "chrome",
+      },
+    },
   ],
   webServer: {
     command: "./node_modules/.bin/next start --hostname 127.0.0.1 --port 4318",

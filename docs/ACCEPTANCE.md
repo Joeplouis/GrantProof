@@ -24,7 +24,7 @@ Fictional demo data only. No production records, submissions, deployments or mes
 | Four integrated React screens                  | PASS — `qa:ui` JSDOM test uses the real running API, clicks generation/citations/navigation/approval, checks spending and download links, edits a claim, confirms approval disabled and export absent. |
 | TypeScript / production build                  | PASS — `npm run typecheck`; `npm run build` (Next.js 16.4.5).                                                                                                                                          |
 | Real-browser functional QA                     | PASS on the integration branch — Playwright desktop/mobile Chrome runs synthetic source and CSV imports, evidence and drafts, real HTML/JSON downloads, approval invalidation, keyboard layout persistence, and a two-session stale-export check. |
-| Manual visual QA                               | **NOT VERIFIED** — passing browser tests check the mobile dashboard width, but no human screenshot review or full visual layout assessment is claimed. |
+| Screenshot visual QA | PASS — Codex inspected desktop, Pixel 7, and compact-phone screen/dialog captures; corrected mobile money layout. See [visual QA](VISUAL-QA.md). Physical devices and Safari remain untested. |
 | Live OpenAI generation                         | **NOT VERIFIED** — no authorized API credential or credential-setup tool available. Fixture output is labeled; live path typechecks but has not called the API.                                        |
 | Actual submission-tab deliverable fields       | **NOT VERIFIED** — official URL returned a client-rendered shell; browser unavailable. See demo checklist.                                                                                             |
 
@@ -48,4 +48,4 @@ npm run test:e2e  # production build + isolated desktop/mobile Chrome checks
 
 Core tests are in `tests/core.test.ts`; React integration in `tests/ui.test.tsx`; runtime API assertions in `scripts/runtime-check.mjs`. Runtime/component checks intentionally change only the fictional workspace. Do not run both at once; reset between them.
 
-Playwright now verifies browser focus behavior, downloads, and dashboard width on desktop and mobile Chrome using an isolated fictional database. JSDOM remains the component-level check; manual visual layout review and live AI testing remain separate handoff checks.
+Playwright now verifies browser focus behavior, downloads, and dashboard width on desktop and mobile Chrome using an isolated fictional database. JSDOM remains the component-level check; screenshot inspection is documented in [visual QA](VISUAL-QA.md). Live AI testing remains a separate handoff check.

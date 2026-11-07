@@ -17,9 +17,9 @@ This branch combines the latest screens, engine, and synthetic fixtures for full
 
 | Check | Result |
 | --- | --- |
-| `npm test` | 30 passed, 0 failed; 2 server-dependent tests skipped unless their URL variables are set |
+| `npm test` | 33 passed (30 engine/acceptance + 3 component), 0 failed; 2 server-dependent tests skipped unless their URL variables are set |
 | `npm run typecheck` | Passed |
-| `npm run test:e2e` | Production build passed; 4 Playwright cases passed across desktop and mobile Chrome |
+| `npm run test:e2e` | Production build passed; 7 Playwright cases passed across desktop, Pixel 7, and compact-phone Chrome |
 | Synthetic API smoke with 100-row stress | 11 groups passed against an isolated local server |
 | Synthetic period-boundary API check | Passed against an isolated local server |
 
@@ -28,14 +28,14 @@ To reproduce the browser run, install dependencies with `npm ci`, ensure Google 
 ## Remaining checks
 
 - Live OpenAI generation has not been exercised with an authorized API key; fixture mode is the verified path.
-- Playwright checks browser behavior and dashboard width, but no manual screenshot review or full visual layout assessment has been completed.
+- Chromium screenshot inspection is complete at desktop, Pixel 7, and compact-phone sizes. See [visual QA](VISUAL-QA.md) for the mobile layout fix, screenshots, and seven passing browser checks. Physical-device and Safari checks remain outside this review.
 - The app still runs on loopback only. No public deployment, funder submission, or real nonprofit data is included.
 
 ## Part 1 completion check
 
 The dashboard now cancels a keyboard move when its handle loses focus, preserving the saved order and clearing the picked-up state. Its regression test failed before the fix and passes afterward. Mouse drop, touch events, keyboard placement/cancellation, saved order, reset, and unavailable-storage recovery remain covered by component tests.
 
-`npm test` now includes the three standalone Part 1 component checks (dashboard, dialog focus, and error/evidence recovery). On this revision, 30 engine/acceptance tests and all three component checks passed. The two server-dependent tests were then run separately against a fresh fictional production server on loopback port 4320, resetting between them; both passed without skips. Production build and typecheck also passed. The prior desktop/mobile browser evidence above belongs to the integration base; it was not rerun for this focus-cancellation change. Manual visual review and live AI remain unverified.
+`npm test` now includes the three standalone Part 1 component checks (dashboard, dialog focus, and error/evidence recovery). On this revision, 30 engine/acceptance tests and all three component checks passed. The two server-dependent tests were then run separately against a fresh fictional production server on loopback port 4320, resetting between them; both passed without skips. Production build and typecheck also passed. The later [visual QA pass](VISUAL-QA.md) reran the combined browser workflow and inspected screenshots after the focus fix and mobile layout improvement. Live AI remains unverified.
 
 To rerun the combined UI/API checks, start a production server with an isolated `GRANTPROOF_DB`, then run these separately, resetting that same fictional database between runs:
 

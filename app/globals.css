@@ -826,6 +826,9 @@ input[type="checkbox"] {
 .tablewrap {
   overflow: auto;
 }
+.tablehint {
+  display: none;
+}
 table {
   width: 100%;
   border-collapse: collapse;
@@ -1334,6 +1337,30 @@ tfoot td {
     font-size: 8px;
     line-height: 1.7;
     display: block;
+  }
+  .money-stats {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+  .money-stats .stat {
+    padding: 16px 20px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .money-stats .stat:last-child {
+    border-bottom: 0;
+  }
+  .reviewtotals {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .tablehint {
+    display: block;
+    font-size: 10px;
+    line-height: 1.7;
+    color: var(--ink);
+    margin: 0 0 10px;
   }
   .contextcolumn {
     grid-template-columns: 1fr;

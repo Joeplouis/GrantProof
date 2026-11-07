@@ -910,7 +910,7 @@ export default function Home() {
           )}
           {tab === "spending" && (
             <>
-              <div className="stats">
+              <div className="stats money-stats">
                 <Stat
                   label="Grant budget"
                   value={money(report.budget)}
@@ -978,7 +978,17 @@ export default function Home() {
                   </button>
                 </form>
               )}
-              <div className="card tablewrap">
+              <p className="tablehint" id="category-scroll-help">
+                Scroll the table sideways to see spending, remaining amounts,
+                and status.
+              </p>
+              <div
+                className="card tablewrap"
+                role="region"
+                aria-label="Category reconciliation table"
+                aria-describedby="category-scroll-help"
+                tabIndex={0}
+              >
                 <table>
                   <thead>
                     <tr>
