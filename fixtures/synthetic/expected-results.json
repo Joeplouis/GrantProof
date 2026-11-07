@@ -1,0 +1,110 @@
+{
+  "fixture_mode": "Deterministic fixture",
+  "starting_g1": {
+    "budget_cents": 5000000,
+    "spent_cents": 1620000,
+    "balance_cents": 3380000
+  },
+  "starting_g2": {
+    "budget_cents": 2500000,
+    "spent_cents": 0,
+    "balance_cents": 2500000
+  },
+  "valid_csv": {
+    "first_import_new": 7,
+    "second_import_duplicates": 7,
+    "second_import_new": 0
+  },
+  "invalid_csv": {
+    "new_imported": 0,
+    "duplicates_skipped": 2,
+    "row_errors": 5
+  },
+  "post_allocation_g1": {
+    "budget_cents": 5000000,
+    "spent_cents": 1972555,
+    "balance_cents": 3027445
+  },
+  "post_allocation_g2": {
+    "budget_cents": 2500000,
+    "spent_cents": 302544,
+    "balance_cents": 2197456
+  },
+  "allocations": [
+    {
+      "transactionId": "X101",
+      "grantId": "g1",
+      "category": "Program supplies",
+      "cents": 65025
+    },
+    {
+      "transactionId": "X102",
+      "grantId": "g1",
+      "category": "Family coaching",
+      "cents": 175000
+    },
+    {
+      "transactionId": "X103",
+      "grantId": "g1",
+      "category": "Program supplies",
+      "cents": 24530
+    },
+    {
+      "transactionId": "X104",
+      "grantId": "g1",
+      "category": "Administration",
+      "cents": 18000
+    },
+    {
+      "transactionId": "X105",
+      "grantId": "g2",
+      "category": "Family coaching",
+      "cents": 122545
+    },
+    {
+      "transactionId": "X106",
+      "grantId": "g2",
+      "category": "Program supplies",
+      "cents": 39999
+    },
+    {
+      "transactionId": "X107",
+      "grantId": "g1",
+      "category": "Family coaching",
+      "cents": 70000
+    },
+    {
+      "transactionId": "X107",
+      "grantId": "g2",
+      "category": "Family coaching",
+      "cents": 50000
+    },
+    {
+      "transactionId": "T004",
+      "grantId": "g2",
+      "category": "Administration",
+      "cents": 90000
+    }
+  ],
+  "test_sources": [
+    {
+      "filename": "05-achieved-program-register-2026.txt",
+      "start": "2026-01-01",
+      "end": "2026-12-31",
+      "approval_policy": "approve all three achieved facts"
+    },
+    {
+      "filename": "06-approved-goals-plan-2027.txt",
+      "start": "2027-01-01",
+      "end": "2027-06-30",
+      "approval_policy": "approve both as goal facts"
+    },
+    {
+      "filename": "07-unapproved-unsafe-claims.txt",
+      "start": "2026-01-01",
+      "end": "2026-12-31",
+      "approval_policy": "leave pending; must never enter a generated claim"
+    }
+  ],
+  "warning": "For fictional local development only; do not submit or import real personal data."
+}
