@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 const defaults = ["evidence", "application", "spending", "review"] as const;
 type Panel = (typeof defaults)[number];
 const labels: Record<Panel, string> = {
@@ -35,6 +35,76 @@ export default function Dashboard({
   const [order, setOrder] = useState<Panel[]>([...defaults]);
   const [dragged, setDragged] = useState<Panel>();
   const [over, setOver] = useState<Panel>();
+  const [keyboardPanel, setKeyboardPanel] = useState<Panel>();
+  const touch = useRef<
+    | {
+        panel: Panel;
+        x: number;
+        y: number;
+        target: Panel;
+        moving: boolean;
+      }
+    | undefined
+  >(undefined);
+  function cancelMove() {
+    setDragged(undefined);
+    setOver(undefined);
+    setKeyboardPanel(undefined);
+    touch.current = undefined;
+  }
+  function keyboardMove(
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    panel: Panel,
+  ) {
+    if (event.key === "Escape" && keyboardPanel) {
+      event.preventDefault();
+      cancelMove();
+      setAnnouncement("Move cancelled. Your layout is unchanged.");
+      return;
+    }
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      if (keyboardPanel === panel) {
+        move(panel, order.indexOf(over || panel));
+        cancelMove();
+      } else {
+        setKeyboardPanel(panel);
+        setDragged(panel);
+        setOver(panel);
+        setAnnouncement(
+          `${labels[panel]} picked up. Use arrow keys to choose a position, Enter to place, or Escape to cancel.`,
+        );
+      }
+      return;
+    }
+    if (
+      keyboardPanel === panel &&
+      [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "Home",
+        "End",
+      ].includes(event.key)
+    ) {
+      event.preventDefault();
+      const current = order.indexOf(over || panel);
+      const step =
+        event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 1;
+      const position =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? order.length - 1
+            : Math.max(0, Math.min(order.length - 1, current + step));
+      setOver(order[position]);
+      setAnnouncement(
+        `Choose position ${position + 1} of ${order.length}. Press Enter to place ${labels[panel]}.`,
+      );
+    }
+  }
+
   const [announcement, setAnnouncement] = useState("");
   const [storageNotice, setStorageNotice] = useState("");
   useEffect(() => {
@@ -68,6 +138,7 @@ export default function Dashboard({
     }
   }
   function move(panel: Panel, index: number) {
+    if (index < 0 || index >= order.length) return;
     const next = order.filter((p) => p !== panel);
     next.splice(index, 0, panel);
     commit(next);
@@ -81,13 +152,15 @@ export default function Dashboard({
         <div>
           <h2>Your workspace, your way.</h2>
           <p>
-            Drag a panel by its handle to rearrange it. Use the arrow buttons on
-            a phone or keyboard.
+            Drag a panel by its handle to rearrange it. Drag on a phone too, or
+            use the arrow buttons. Keyboard: pick up a handle with Space, move
+            with arrow keys, then press Enter.
           </p>
         </div>
         <button
           className="secondary"
           onClick={() => {
+            cancelMove();
             commit([...defaults]);
             setAnnouncement("Default dashboard layout restored.");
           }}
@@ -100,6 +173,7 @@ export default function Dashboard({
           <article
             key={panel}
             aria-label={labels[panel]}
+            data-dashboard-panel={panel}
             className={
               "card dashboard-panel" +
               (dragged === panel ? " is-dragging" : "") +
@@ -115,8 +189,7 @@ export default function Dashboard({
             onDrop={(e) => {
               e.preventDefault();
               if (dragged) move(dragged, index);
-              setDragged(undefined);
-              setOver(undefined);
+              cancelMove();
             }}
           >
             <div className="dashboard-panel-head">
@@ -144,16 +217,78 @@ export default function Dashboard({
                   draggable
                   className="drag-handle"
                   aria-label={`Drag ${labels[panel]}`}
-                  title="Drag to rearrange this panel"
+                  title="Drag to rearrange. Keyboard: Space, arrow keys, Enter."
+                  aria-pressed={keyboardPanel === panel}
+                  aria-describedby="dashboard-move-help"
+                  onKeyDown={(event) => keyboardMove(event, panel)}
+                  onPointerDown={(event) => {
+                    if (event.pointerType === "mouse") return;
+                    event.preventDefault();
+                    cancelMove();
+                    touch.current = {
+                      panel,
+                      x: event.clientX,
+                      y: event.clientY,
+                      target: panel,
+                      moving: false,
+                    };
+                    event.currentTarget.setPointerCapture?.(event.pointerId);
+                  }}
+                  onPointerMove={(event) => {
+                    const gesture = touch.current;
+                    if (!gesture || gesture.panel !== panel) return;
+                    if (
+                      !gesture.moving &&
+                      Math.hypot(
+                        event.clientX - gesture.x,
+                        event.clientY - gesture.y,
+                      ) < 8
+                    )
+                      return;
+                    gesture.moving = true;
+                    setDragged(panel);
+                    const target = document
+                      .elementFromPoint?.(event.clientX, event.clientY)
+                      ?.closest<HTMLElement>("[data-dashboard-panel]")?.dataset
+                      .dashboardPanel as Panel | undefined;
+                    if (target && defaults.includes(target)) {
+                      gesture.target = target;
+                      setOver(target);
+                      setAnnouncement(
+                        `Move ${labels[panel]} to position ${order.indexOf(target) + 1}.`,
+                      );
+                    }
+                    if (event.clientY < 65) window.scrollBy(0, -14);
+                    else if (event.clientY > window.innerHeight - 65)
+                      window.scrollBy(0, 14);
+                  }}
+                  onPointerUp={(event) => {
+                    const gesture = touch.current;
+                    if (!gesture || gesture.panel !== panel) return;
+                    if (gesture.moving)
+                      move(panel, order.indexOf(gesture.target));
+                    if (
+                      event.currentTarget.hasPointerCapture?.(event.pointerId)
+                    )
+                      event.currentTarget.releasePointerCapture(
+                        event.pointerId,
+                      );
+                    cancelMove();
+                  }}
+                  onPointerCancel={() => {
+                    cancelMove();
+                    setAnnouncement(
+                      "Move cancelled. Your layout is unchanged.",
+                    );
+                  }}
                   onDragStart={(e) => {
+                    touch.current = undefined;
+                    setKeyboardPanel(undefined);
                     e.dataTransfer.effectAllowed = "move";
                     e.dataTransfer.setData("text/plain", panel);
                     setDragged(panel);
                   }}
-                  onDragEnd={() => {
-                    setDragged(undefined);
-                    setOver(undefined);
-                  }}
+                  onDragEnd={cancelMove}
                 >
                   ⠿
                 </button>
@@ -276,6 +411,11 @@ export default function Dashboard({
           </article>
         ))}
       </div>
+      <p id="dashboard-move-help" className="sr-only">
+        Drag a panel handle, or press Space to pick it up, use arrow keys to
+        choose a position, and press Enter to place it. Escape cancels. The
+        arrow buttons also move panels one position.
+      </p>
       <div className="dashboard-layout-note">
         <span>
           Layout stays in this browser. Moving a panel does not change grant

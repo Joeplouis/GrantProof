@@ -125,8 +125,28 @@ export default function Home() {
   useEffect(() => {
     void loadWorkspace();
   }, []);
+  useEffect(() => {
+    const restoreScreen = () => {
+      const screen = window.location.hash.slice(1);
+      if (tabs.some(([key]) => key === screen)) {
+        setTab(screen);
+        setShowImport(false);
+        setEvidence(undefined);
+        setEdit(undefined);
+      }
+    };
+    restoreScreen();
+    window.addEventListener("popstate", restoreScreen);
+    window.addEventListener("hashchange", restoreScreen);
+    return () => {
+      window.removeEventListener("popstate", restoreScreen);
+      window.removeEventListener("hashchange", restoreScreen);
+    };
+  }, []);
   function navigate(screen: string) {
     setTab(screen);
+    if (window.location.hash !== "#" + screen)
+      window.history.pushState(null, "", "#" + screen);
     setShowImport(false);
     setEvidence(undefined);
     setEdit(undefined);
@@ -232,7 +252,11 @@ export default function Home() {
   return (
     <div className="shell">
       <aside>
-        <a href="/" className="brand">
+        <a
+          href="#dashboard"
+          className="brand"
+          onClick={() => navigate("dashboard")}
+        >
           <span className="brandmark">
             G<span>✓</span>
           </span>

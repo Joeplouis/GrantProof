@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
 import React from "react";
 const dom = new JSDOM("<!doctype html><html><body></body></html>", {
-  url: "http://127.0.0.1:4318",
+  url: "http://127.0.0.1:4318/#dashboard",
 });
 Object.defineProperty(globalThis, "window", {
   value: dom.window,
@@ -33,6 +33,7 @@ test(
     const { default: Home } = await import("../app/page");
     const user = userEvent.setup({ document: dom.window.document });
     render(<Home />);
+    await screen.findByRole("heading", { name: "A clear view of your grant." });
     await screen.findByRole("button", { name: /Dashboard/ });
     await user.click(screen.getByRole("button", { name: /Dashboard/ }));
     await screen.findByRole("region", { name: "Moveable grant dashboard" });

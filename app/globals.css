@@ -1785,3 +1785,47 @@ summary:focus-visible {
     font-size: 9px;
   }
 }
+.drag-handle {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.drag-handle[aria-pressed="true"] {
+  background: #dce9ce;
+  border-color: #6e9554;
+  color: #305b23;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.dashboard-panel.drop-target {
+  position: relative;
+}
+.dashboard-panel.drop-target::after {
+  content: "Place panel here";
+  position: absolute;
+  bottom: 15px;
+  right: 18px;
+  background: #e6f0db;
+  color: #54763d;
+  border: 1px solid #cbddbb;
+  border-radius: 5px;
+  padding: 5px 9px;
+  font-size: 9px;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-panel,
+  button {
+    transition: none;
+  }
+}

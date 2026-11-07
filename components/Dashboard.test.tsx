@@ -91,6 +91,92 @@ test("dashboard drag/drop, keyboard controls, saved order and reset preserve gra
     ).textContent,
     "$33,800.00",
   );
+
+  const budgetHandle = screen.getByRole("button", {
+    name: "Drag Budget snapshot",
+  });
+  budgetHandle.focus();
+  fireEvent.keyDown(budgetHandle, { key: " " });
+  fireEvent.keyDown(budgetHandle, { key: "ArrowUp" });
+  fireEvent.keyDown(budgetHandle, { key: "Enter" });
+  assert.equal(panels()[1], "Budget snapshot");
+  const savedBeforeCancel = window.localStorage.getItem(
+    "grantproof.dashboard-layout.v1",
+  );
+  fireEvent.keyDown(budgetHandle, { key: " " });
+  fireEvent.keyDown(budgetHandle, { key: "Home" });
+  fireEvent.keyDown(budgetHandle, { key: "Escape" });
+  assert.equal(panels()[1], "Budget snapshot");
+  assert.equal(
+    window.localStorage.getItem("grantproof.dashboard-layout.v1"),
+    savedBeforeCancel,
+  );
+  Object.defineProperty(dom.window, "PointerEvent", {
+    configurable: true,
+    value: class extends dom.window.MouseEvent {
+      pointerId: number;
+      pointerType: string;
+      constructor(type: string, init: PointerEventInit = {}) {
+        super(type, init);
+        this.pointerId = init.pointerId || 1;
+        this.pointerType = init.pointerType || "touch";
+      }
+    },
+  });
+  document.elementFromPoint = () =>
+    screen.getByRole("article", { name: "Evidence overview" });
+  const reviewHandle = screen.getByRole("button", {
+    name: "Drag Review readiness",
+  });
+  fireEvent.pointerDown(reviewHandle, {
+    pointerId: 1,
+    pointerType: "touch",
+    clientX: 100,
+    clientY: 200,
+  });
+  fireEvent.pointerMove(reviewHandle, {
+    pointerId: 1,
+    pointerType: "touch",
+    clientX: 130,
+    clientY: 240,
+  });
+  fireEvent.pointerUp(reviewHandle, {
+    pointerId: 1,
+    pointerType: "touch",
+    clientX: 130,
+    clientY: 240,
+  });
+  assert.equal(panels()[0], "Review readiness");
+  const beforePointerCancel = panels().join(",");
+  fireEvent.pointerDown(budgetHandle, {
+    pointerId: 2,
+    pointerType: "touch",
+    clientX: 100,
+    clientY: 200,
+  });
+  fireEvent.pointerMove(budgetHandle, {
+    pointerId: 2,
+    pointerType: "touch",
+    clientX: 130,
+    clientY: 240,
+  });
+  fireEvent.pointerCancel(budgetHandle, { pointerId: 2, pointerType: "touch" });
+  assert.equal(panels().join(","), beforePointerCancel);
+  const originalSet = dom.window.Storage.prototype.setItem;
+  dom.window.Storage.prototype.setItem = () => {
+    throw Error("Storage denied");
+  };
+  fireEvent.click(screen.getByRole("button", { name: "Reset layout" }));
+  assert.equal(panels()[0], "Evidence overview");
+  assert.ok(screen.getByText(/browser storage is unavailable/));
+  dom.window.Storage.prototype.setItem = originalSet;
+  cleanup();
+  window.localStorage.setItem(
+    "grantproof.dashboard-layout.v1",
+    '["unknown","unknown"]',
+  );
+  render(<Dashboard {...props} />);
+  assert.equal(panels()[0], "Evidence overview");
   assert.equal(JSON.stringify(props), before);
   cleanup();
   dom.window.close();
