@@ -1,77 +1,80 @@
-# GrantProof
+# GrantProof — every claim has evidence, every grant dollar reconciles
 
-**Every claim has evidence. Every grant dollar reconciles.**
+## The problem
 
-A local-first hackathon app for the fictional Tidepath Family Alliance. Four integrated workspaces connect staff-approved evidence, sourced application answers, QuickBooks-style CSV spending, and a versioned approval/export package.
+**Denise, the part-time coordinator at Tidepath Family Alliance (a fictional nonprofit), is the only person who writes her funder reports — and she writes them from memory:**
 
-## Run on this Mac Studio
+Tidepath runs on two small grants. Four times a year Denise owes each funder a report: what the program achieved, and how every dollar was spent. She spends about **14 hours a week** during reporting season digging through registers, receipts, and spreadsheets, trying to remember which numbers were real. Twice, numbers went into a report that she could not prove when the funder asked — once she had mixed a *goal* ("we aim to support 150 families") into a report as if it had already happened. Last year a report went in **three weeks late** because the spending in her spreadsheet did not add up against the bank records, and the funder froze the next payment while it was sorted out. The families waiting on coaching sessions are the ones who pay when the money is frozen.
 
-Requires Node.js 22+ and npm. No cloud services or API key are required for fixture mode.
+Denise does not need another spreadsheet. She needs a system where **a claim cannot be written unless the evidence for it exists and was approved**, and where **grant spending reconciles itself** — so a report takes an afternoon of reviewing, not weeks of digging, and nothing unproven ever reaches a funder.
 
-```sh
-cd /Users/git/Desktop/GrantProof
+*(Tidepath Family Alliance, Denise, and all data in this repo are fictional, per hackathon rules.)*
+
+**When this is solved, a judge can see in the demo:**
+
+1. A generated grant answer where **every claim is an exact quote of an approved fact** — and a question the AI *refuses* to answer because its only evidence is an unapproved goal, returning a "gap" instead of inventing a number.
+2. Spending imported from a CSV and **reconciled against the grant budget in cents** — $16,200 spent, $33,800 remaining on Grant 1 — with over-budget and unallocated money flagged before a report can be approved.
+3. An approval that **seals the whole application + report with a hash**: change one word afterward and the approval disappears and export is blocked until a human re-approves.
+
+## What GrantProof does
+
+1. **Sources → facts.** Staff import a source document (program register, board plan). Each line becomes a candidate fact, tagged `achieved` or `goal`. Nothing is usable until a human approves it.
+2. **Evidence-bound drafting.** For each funder question, an agent drafts an answer using *only* approved facts from the right period and kind. Every claim must be an exact excerpt of one approved fact, cited by fact ID. Missing evidence comes back as a gap — never a made-up number. A deterministic validator re-checks every draft after the agent; the LLM never gets the last word.
+3. **Reconciled spending.** Transactions are imported from a QuickBooks-style CSV (duplicates and bad rows rejected), allocated to grant budget categories, and reconciled in integer cents inside the funder's period.
+4. **Approve → seal → export.** A reviewer can approve only when every question has a valid draft, no category is over budget, and no in-period transaction is unallocated. Approval seals a SHA-256 snapshot. Any later change invalidates it, and export returns the sealed snapshot only while the approval is current.
+
+## Built with
+
+Codex and the **OpenAI Agents SDK** (`@openai/agents`) · Next.js 16 · React 19 · TypeScript · SQLite (`better-sqlite3`) · Zod
+
+- **Live mode** — set `OPENAI_API_KEY` (model: `OPENAI_MODEL`, default `gpt-4.1-mini`). The agent must call three tools before answering: approved-fact retrieval, requirement retrieval, and deterministic spending validation.
+- **Fixture mode (default, no key needed)** — a deterministic generator builds drafts from the same approved facts, so the full flow always works, including live on stage.
+
+## The team split
+
+Three builders, one layer each — full assignments, file ownership, contracts, and acceptance tests are in [AGENT-HANDOFF.md](AGENT-HANDOFF.md):
+
+- **Part 1 — The Screens:** `app/page.tsx`, `app/globals.css` — Sources & Facts, Drafts, Spending, Approve & Export
+- **Part 2 — The Money + Data:** `lib/store.ts`, `fixtures/`, `tests/` — storage, CSV import, reconciliation in cents, approval seal, seed data
+- **Part 3 — The AI Brain + Package:** `lib/agent.ts`, `app/api/` — the Agents SDK drafter, the workspace/export API, this README
+
+## Run it
+
+```bash
+npm install
+npm run reset   # seeds the fictional Tidepath workspace (Grant 1: $16,200 spent / $33,800 remaining)
+npm run dev     # http://127.0.0.1:4317
+```
+
+Optional live AI: copy `.env.example` to `.env.local` and set `OPENAI_API_KEY`.
+
+Checks: `npm run typecheck` · `npm test`
+
+## Demo script (about 3 minutes)
+
+1. **Reset** the workspace. Show the seed: 2 sources, 4 facts (2 approved achievements, 1 unapproved goal, 1 unapproved estimate), 2 grants, 3 funder questions.
+2. **Generate Question 1** ("What did your program achieve?") in fixture mode → 2 claims, each an exact approved excerpt, each cited. Validation: clean.
+3. **Generate Question 3** ("What are your goals…?") → **zero claims, one gap**: the only goal fact is unapproved, so the system refuses rather than inventing. *This is the moment the old way failed Denise — a goal reported as an achievement.* Approve the goal fact, regenerate → the claim appears.
+4. **Spending:** show Grant 1 reconciled — $50,000 budget, $16,200 spent, $33,800 balance, every category On track. Import `fixtures/import-errors.csv` → bad date and negative amount rejected, duplicate skipped.
+5. **Approve** Grant 1 as the reviewer → snapshot sealed with a hash. **Export** → sealed JSON downloads.
+6. **Tamper:** edit one claim's wording → the approval vanishes, validation flags "Edited wording requires evidence review," and export is blocked (409) until a human re-approves.
+
+## Rules the system enforces (not promises — code)
+
+- No claim without an approved fact; no claim that is not an exact excerpt of one.
+- Goals are never reported as achievements (fact kind must match question kind, source period must fall inside the funder period).
+- Money is integer cents; allocations cannot exceed a transaction across grants or fall outside the funder period.
+- Approval is a hash seal, not a checkbox: any change to content or evidence requires a new human approval before export.
+- Source documents are treated as untrusted data by the agent — instructions embedded in a source are never followed.
+
+## Verified local build and handoff
+
+The complete app includes all four screens, persistent SQLite storage, readable approved HTML reports, and JSON audit exports. See [the detailed local run guide](docs/LOCAL-GUIDE.md) for production startup, fixture totals, generation-mode limits, and repeatable checks; [acceptance evidence](docs/ACCEPTANCE.md) records the verified results and remaining browser/live-AI limits.
+
+```bash
 npm ci
 npm run reset
 npm run dev
 ```
 
-Open [GrantProof locally](http://127.0.0.1:4317). It binds **127.0.0.1 only**. A URL on the Mac Studio is not a remote preview for Miami; no tunnel, public deployment, or remote access was created. Do not expose this unauthenticated prototype to the network.
-
-For the production build:
-
-```sh
-npm run build
-npm start
-```
-
-Stop the dev server before `npm start`; both use port 4317. Reset only this fictional workspace with `npm run reset`. The ignored SQLite database lives in `data/grantproof.sqlite`. Reset replaces its demo records and approvals. Avoid resetting while another person is editing the demo.
-
-## What works
-
-- **Evidence library:** upload `.txt`/`.md` or paste text; each nonempty line becomes a pending candidate with source, line location, applicable period, and achieved/goal classification. Staff approve or revoke each fact. Pending facts never enter generated answers.
-- **Application:** generate per-question answers within word limits; exact approved excerpts carry clickable fact references. Missing evidence is shown instead of an invented statistic. Edit creates a new version and unsupported wording blocks approval.
-- **Spending:** import `id,date,payee,amount` CSV; report malformed rows and duplicate skips; allocate cents across grants without exceeding an expense; exclude dates outside each funder's inclusive period; show category budget, spent, balance, and near/over-budget status.
-- **Review/export:** approve the exact application, relevant evidence, ledger, and report snapshot; edits, evidence changes, or relevant financial changes invalidate eligibility. Download the approved HTML report or JSON audit package. HTML can be printed to PDF in a browser. No automatic delivery or funder submission.
-- **Second period:** the Bridge Fund uses July 1, 2026–June 30, 2027. Its goal begins pending, so generation first shows an evidence gap. Approve the goal and allocate T004 to demonstrate the different period.
-
-## Honest generation modes
-
-**Deterministic fixture** is the default and the verified mode. It retrieves approved facts matching period/type/question requirements and assembles their exact excerpts. The records are already written as natural sentences; no free paraphrasing is allowed in this prototype.
-
-The optional **OpenAI Agents SDK** path runs server-side with three explicit read-only tools: approved facts, grant requirements, deterministic spending/validation. It uses structured output, a five-turn cap, a 45-second timeout, checks that all tools ran, and validates citations, exact excerpts, approval status, period, fact type and word limits in code. It cannot approve, export, submit, access files, or follow imported document instructions. SDK tracing is disabled. This is evidence validation, not a mathematical proof of factuality.
-
-No authorized API-key setup tool or environment credential was available during this build. No unrelated project's credentials were searched or copied. To opt into live AI, the owner can put a key in ignored `.env.local` using `.env.example` as the variable guide, restart the server, and enable the mode in Application. `OPENAI_MODEL` is configurable; default `gpt-4.1-mini`. Live AI has **not** been verified and should not be presented as verified at the demo. No cost claim is made.
-
-## Demo fixtures and exact totals
-
-All names, records, transactions and organizations are fictional. The CSV represents a QuickBooks-style export; there is **no direct QuickBooks integration**.
-
-| Grant / category                |         Budget |       Spending |      Remaining |
-| ------------------------------- | -------------: | -------------: | -------------: |
-| Family Futures — coaching       |     $30,000.00 |     $12,000.00 |     $18,000.00 |
-| Family Futures — supplies       |     $10,000.00 |      $2,400.00 |      $7,600.00 |
-| Family Futures — administration |     $10,000.00 |      $1,800.00 |      $8,200.00 |
-| **Family Futures total**        | **$50,000.00** | **$16,200.00** | **$33,800.00** |
-| Bridge Fund initial total       |     $25,000.00 |          $0.00 |     $25,000.00 |
-
-T001 is on the first inclusive day, T003 on the final inclusive day. T004 ($900 on January 1, 2027) is outside Family Futures and inside Bridge Fund. After allocating T004 to Bridge Fund administration, that grant spends $900 and has $24,100 remaining. Reimporting `fixtures/quickbooks-sample.csv` adds zero records and reports four duplicate skips. `fixtures/import-errors.csv` yields one valid $100 record, one duplicate skip, and two rejected rows; allocate the valid record before approving the affected period.
-
-## Checks
-
-```sh
-npm test
-npm run typecheck
-npm run build
-# On a freshly reset, running fixture server (mutates fictional data):
-npm run qa:runtime
-# UI component interactions against that running server; start from reset:
-npm run qa:ui
-# Restore the clean demo afterward:
-npm run reset
-```
-
-See [acceptance evidence](docs/ACCEPTANCE.md), [architecture and contracts](docs/ARCHITECTURE.md), and the [three-minute demo and submission checklist](docs/DEMO.md). Browser visual QA and live AI remain explicitly separate from fixture/API/component checks.
-
-## Scope and limitations
-
-Single-user local prototype, with an optimistic concurrency check around live generation. SQLite has relational foreign keys and integer constraints, but state is saved as one small transactional workspace; this is not a scalable multi-tenant database design. There is no identity system, production access, OCR/PDF/DOCX parsing, live accounting sync, real donor/client data, cloud deployment, or autonomous submission. Staff review records for accuracy: an approved source can itself contain an error. Duplicate fingerprint checks intentionally err toward flagging/skipping matching date/payee/amount rows; legitimate identical expenses need staff reconciliation before adding them with corrected source data.
+Run the completed branch `codex/grantproof-mvp`. The preview binds to `127.0.0.1:4317` on the machine running it; collaborators can clone this branch and run their own local workspace. Do not commit `.env.local`, SQLite databases, or real nonprofit records.
