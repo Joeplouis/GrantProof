@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import Dashboard from "@/components/Dashboard";
+import Modal from "@/components/Modal";
 import type { State, Fact, Claim } from "@/lib/store";
 type Report = {
   grantId: string;
@@ -32,6 +34,7 @@ const money = (n: number) =>
   }).format(n / 100);
 const count = (s: string) => (s.trim() ? s.trim().split(/\s+/).length : 0);
 const tabs = [
+  ["dashboard", "00", "Dashboard", "▦"],
   ["evidence", "01", "Evidence library", "▤"],
   ["application", "02", "Application workspace", "✎"],
   ["spending", "03", "Grant spending", "▥"],
@@ -47,14 +50,134 @@ export default function Home() {
   const [live, setLive] = useState(false);
   const [edit, setEdit] = useState<{ id: string; claims: Claim[] }>();
   const [showImport, setShowImport] = useState(false);
-  useEffect(() => {
-    fetch("/api/workspace")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(() =>
-        setNotice("Unable to load workspace. Retry after starting the server."),
+  const [loadError, setLoadError] = useState("");
+  const [noticeError, setNoticeError] = useState(false);
+  const [factFilter, setFactFilter] = useState("all");
+  const [evidenceSearch, setEvidenceSearch] = useState("");
+  const [readingFile, setReadingFile] = useState(false);
+  async function readImportFile(
+    input: HTMLInputElement,
+    kind: "source" | "csv",
+  ) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const form = input.form;
+    if (!form) return;
+    setReadingFile(true);
+    try {
+      const valid =
+        kind === "source"
+          ? /\.(txt|md)$/i.test(file.name)
+          : /\.csv$/i.test(file.name);
+      if (!valid)
+        throw Error(
+          kind === "source"
+            ? "Choose a .txt or .md source file."
+            : "Choose a .csv spending file.",
+        );
+      const limit = kind === "source" ? 100000 : 1000000;
+      if (file.size > limit * 4)
+        throw Error("This file is too large. Import a smaller text file.");
+      const text = await file.text();
+      if (text.length > limit)
+        throw Error(
+          `File exceeds the ${limit.toLocaleString()}-character import limit.`,
+        );
+      if (!text.trim())
+        throw Error(
+          "This file is empty. Choose a file with records to review.",
+        );
+      (
+        form.elements.namedItem(
+          kind === "source" ? "text" : "csv",
+        ) as HTMLTextAreaElement
+      ).value = text;
+      if (kind === "source")
+        (form.elements.namedItem("name") as HTMLInputElement).value = file.name;
+      setNoticeError(false);
+      setNotice(
+        `${file.name} loaded for preview. Review it below, then import.`,
       );
+    } catch (error) {
+      input.value = "";
+      setNoticeError(true);
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "This file could not be read. You can paste its text instead.",
+      );
+    } finally {
+      setReadingFile(false);
+    }
+  }
+  async function loadWorkspace() {
+    setLoadError("");
+    try {
+      const r = await fetch("/api/workspace");
+      if (!r.ok) throw Error(`Workspace could not be loaded (${r.status}).`);
+      setData(await r.json());
+    } catch (e) {
+      setLoadError(
+        e instanceof Error ? e.message : "Workspace could not be loaded.",
+      );
+    }
+  }
+  useEffect(() => {
+    void loadWorkspace();
   }, []);
+  useEffect(() => {
+    const restoreScreen = () => {
+      const screen = window.location.hash.slice(1);
+      if (tabs.some(([key]) => key === screen)) {
+        setTab(screen);
+        setShowImport(false);
+        setEvidence(undefined);
+        setEdit(undefined);
+      }
+    };
+    restoreScreen();
+    window.addEventListener("popstate", restoreScreen);
+    window.addEventListener("hashchange", restoreScreen);
+    return () => {
+      window.removeEventListener("popstate", restoreScreen);
+      window.removeEventListener("hashchange", restoreScreen);
+    };
+  }, []);
+  function navigate(screen: string) {
+    setTab(screen);
+    if (window.location.hash !== "#" + screen)
+      window.history.pushState(null, "", "#" + screen);
+    setShowImport(false);
+    setEvidence(undefined);
+    setEdit(undefined);
+  }
+  async function checkExport() {
+    setBusy(true);
+    try {
+      const response = await fetch(
+        "/api/export?grant=" + encodeURIComponent(grant),
+      );
+      if (!response.ok) {
+        const body = await response.json();
+        throw Error(body.error || "Staff approval is required before export.");
+      }
+      setNoticeError(false);
+      setNotice(
+        "An approved export is available. Refresh the workspace to see the current download links.",
+      );
+      await loadWorkspace();
+    } catch (error) {
+      setNoticeError(true);
+      setNotice(
+        "Export blocked: " +
+          (error instanceof Error
+            ? error.message
+            : "Staff approval is required."),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function act(body: unknown) {
     setBusy(true);
     try {
@@ -66,9 +189,11 @@ export default function Home() {
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
       setData(d);
+      setNoticeError(false);
       setNotice(d.message);
       return true;
     } catch (e) {
+      setNoticeError(true);
       setNotice(e instanceof Error ? e.message : "Request failed");
       return false;
     } finally {
@@ -79,7 +204,19 @@ export default function Home() {
     return (
       <main className="loading">
         <div className="brandmark">G</div>
-        <h1>Opening your workspace…</h1>
+        <h1>
+          {loadError
+            ? "Your workspace could not be opened."
+            : "Opening your workspace…"}
+        </h1>
+        {loadError && (
+          <>
+            <p role="alert">{loadError}</p>
+            <button className="primary" onClick={() => void loadWorkspace()}>
+              Retry loading workspace
+            </button>
+          </>
+        )}
         <p>GrantProof · local fictional demo</p>
       </main>
     );
@@ -87,12 +224,39 @@ export default function Home() {
   const report = data.reports.find((r) => r.grantId === grant)!;
   const questions = data.questions.filter((q) => q.grantId === grant);
   const approved = data.facts.filter((f) => f.approved).length;
+  const sourceFitsGrant = (source: State["sources"][number]) =>
+    source.periodStart >= g.start && source.periodEnd <= g.end;
+  const grantFacts = data.facts.filter((f) => {
+    const source = data.sources.find((source) => source.id === f.sourceId);
+    return source && sourceFitsGrant(source);
+  });
+  const approvedForGrant = grantFacts.filter((f) => f.approved).length;
+  const filteredSources = data.sources
+    .map((source) => ({
+      ...source,
+      visibleFacts: data.facts.filter(
+        (f) =>
+          f.sourceId === source.id &&
+          (factFilter === "all" ||
+            (factFilter === "approved" ? f.approved : !f.approved)) &&
+          (!evidenceSearch ||
+            `${source.name} ${f.excerpt}`
+              .toLowerCase()
+              .includes(evidenceSearch.toLowerCase())),
+      ),
+    }))
+    .filter((source) => source.visibleFacts.length > 0);
+
   const current = data.currentApprovals.find((a) => a.grantId === grant);
   const errors = data.reviewErrors[grant];
   return (
     <div className="shell">
       <aside>
-        <a href="/" className="brand">
+        <a
+          href="#dashboard"
+          className="brand"
+          onClick={() => navigate("dashboard")}
+        >
           <span className="brandmark">
             G<span>✓</span>
           </span>
@@ -110,7 +274,9 @@ export default function Home() {
           {tabs.map(([key, num, label, icon]) => (
             <button
               key={key}
-              onClick={() => setTab(key)}
+              onClick={() => navigate(key)}
+              aria-current={tab === key ? "page" : undefined}
+              title={label}
               className={tab === key ? "active" : ""}
             >
               <span className="navicon">{icon}</span>
@@ -154,22 +320,26 @@ export default function Home() {
             <div>
               <div className="eyebrow">LESS PAPERWORK. MORE POSSIBILITY.</div>
               <h1>
-                {tab === "application"
-                  ? "Your impact, backed by evidence."
-                  : tab === "evidence"
-                    ? "Good answers start here."
-                    : tab === "spending"
-                      ? "Every dollar, accounted for."
-                      : "Ready for a human sign-off."}
+                {tab === "dashboard"
+                  ? "A clear view of your grant."
+                  : tab === "application"
+                    ? "Your impact, backed by evidence."
+                    : tab === "evidence"
+                      ? "Good answers start here."
+                      : tab === "spending"
+                        ? "Every dollar, accounted for."
+                        : "Ready for a human sign-off."}
               </h1>
               <p className="subtitle">
-                {tab === "application"
-                  ? "Turn approved facts into funder-ready answers. Keep the source close."
-                  : tab === "evidence"
-                    ? "One trusted home for the facts behind your applications."
-                    : tab === "spending"
-                      ? "Keep QuickBooks. Reconcile your CSV against the funder’s rules."
-                      : "Review the application and financial report as one versioned package."}
+                {tab === "dashboard"
+                  ? "Arrange your workspace around what needs attention today."
+                  : tab === "application"
+                    ? "Turn approved facts into funder-ready answers. Keep the source close."
+                    : tab === "evidence"
+                      ? "One trusted home for the facts behind your applications."
+                      : tab === "spending"
+                        ? "Keep QuickBooks. Reconcile your CSV against the funder’s rules."
+                        : "Review the application and financial report as one versioned package."}
               </p>
             </div>
             <span className="privacy">♧ &nbsp; Local-first workspace</span>
@@ -181,7 +351,14 @@ export default function Home() {
               <select
                 aria-label="Current grant"
                 value={grant}
-                onChange={(e) => setGrant(e.target.value)}
+                onChange={(e) => {
+                  setGrant(e.target.value);
+                  setShowImport(false);
+                  setEvidence(undefined);
+                  setEdit(undefined);
+                  setNotice("");
+                }}
+                disabled={busy}
               >
                 {data.grants.map((g) => (
                   <option key={g.id} value={g.id}>
@@ -201,7 +378,10 @@ export default function Home() {
             </span>
           </div>
           {notice && (
-            <div className="notice" role="status">
+            <div
+              className={"notice" + (noticeError ? " notice-error" : "")}
+              role={noticeError ? "alert" : "status"}
+            >
               <span>{notice}</span>
               <button
                 aria-label="Dismiss notification"
@@ -210,6 +390,23 @@ export default function Home() {
                 ×
               </button>
             </div>
+          )}
+          {tab === "dashboard" && (
+            <Dashboard
+              approvedFacts={approvedForGrant}
+              pendingFacts={grantFacts.length - approvedForGrant}
+              answersReady={
+                questions.filter((q) => {
+                  const d = data.drafts.find((d) => d.questionId === q.id);
+                  return d && !(data.draftErrors[d.id] || d.gaps).length;
+                }).length
+              }
+              questionCount={questions.length}
+              spending={{ ...report, end: g.end }}
+              approved={!!current}
+              blockers={errors}
+              navigate={navigate}
+            />
           )}
           {tab === "evidence" && (
             <>
@@ -259,8 +456,11 @@ export default function Home() {
                         start: f.get("start"),
                         end: f.get("end"),
                       })
-                    )
+                    ) {
                       setShowImport(false);
+                      setFactFilter("pending");
+                      setEvidenceSearch("");
+                    }
                   }}
                 >
                   <h3>Add a text source</h3>
@@ -301,20 +501,10 @@ export default function Home() {
                     <input
                       type="file"
                       accept=".txt,.md,text/plain"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const form = e.target.closest("form")!;
-                          (
-                            form.elements.namedItem(
-                              "text",
-                            ) as HTMLTextAreaElement
-                          ).value = await file.text();
-                          (
-                            form.elements.namedItem("name") as HTMLInputElement
-                          ).value = file.name;
-                        }
-                      }}
+                      disabled={readingFile || busy}
+                      onChange={(e) =>
+                        void readImportFile(e.currentTarget, "source")
+                      }
                     />
                   </label>
                   <label>
@@ -326,12 +516,69 @@ export default function Home() {
                       placeholder="Paste fictional program records, one fact per line…"
                     />
                   </label>
-                  <button className="primary" disabled={busy}>
-                    Extract candidate facts
+                  <button className="primary" disabled={busy || readingFile}>
+                    {readingFile
+                      ? "Reading source…"
+                      : "Extract candidate facts"}
                   </button>
                 </form>
               )}
-              {data.sources.map((src) => (
+              <div className="evidence-toolbar">
+                <label className="evidence-search">
+                  Search evidence
+                  <input
+                    type="search"
+                    value={evidenceSearch}
+                    onChange={(e) => setEvidenceSearch(e.target.value)}
+                    placeholder="Search excerpts or source names…"
+                  />
+                </label>
+                <div
+                  className="fact-filters"
+                  role="group"
+                  aria-label="Evidence status"
+                >
+                  {[
+                    ["all", "All facts"],
+                    ["approved", "Approved only"],
+                    ["pending", "Needs review"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={factFilter === value ? "selected" : ""}
+                      aria-pressed={factFilter === value}
+                      onClick={() => setFactFilter(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="period-hint">
+                {approvedForGrant} approved fact
+                {approvedForGrant === 1 ? "" : "s"} fall within {g.name}’s
+                reporting period. Sources outside it stay in your library for
+                other grants.
+              </p>
+              {!filteredSources.length && (
+                <div className="card empty-evidence">
+                  <h3>No matching evidence.</h3>
+                  <p>
+                    Try another search or status, or import a source for this
+                    grant.
+                  </p>
+                  <button
+                    className="textbutton"
+                    onClick={() => {
+                      setEvidenceSearch("");
+                      setFactFilter("all");
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+              {filteredSources.map((src) => (
                 <section className="card sourcecard" key={src.id}>
                   <div className="sourcehead">
                     <div className="docicon">▤</div>
@@ -343,69 +590,106 @@ export default function Home() {
                         candidate facts
                       </p>
                     </div>
-                    <span className="tag neutral">Text record</span>
+                    <span
+                      className={
+                        "tag " + (sourceFitsGrant(src) ? "good" : "warning")
+                      }
+                    >
+                      {sourceFitsGrant(src)
+                        ? "Within grant period"
+                        : "Outside this grant period"}
+                    </span>
                   </div>
-                  {data.facts
-                    .filter((f) => f.sourceId === src.id)
-                    .map((f) => (
-                      <div className="factrow" key={f.id}>
-                        <div>
-                          <div className="factmeta">
-                            <span
-                              className={
-                                "tag " + (f.approved ? "good" : "warning")
-                              }
-                            >
-                              {f.approved ? "✓ Approved" : "◷ Pending review"}
-                            </span>
-                            <small>{f.location}</small>
-                          </div>
-                          <p>{f.excerpt}</p>
-                          <code>{f.id.slice(0, 12)}</code>
-                        </div>
-                        <div className="factactions">
-                          <select
-                            aria-label={"Fact type " + f.id}
-                            value={f.kind}
-                            onChange={(e) =>
-                              act({
-                                action: "fact",
-                                id: f.id,
-                                kind: e.target.value,
-                                approved: false,
-                              })
+                  {src.visibleFacts.map((f) => (
+                    <div className="factrow" key={f.id}>
+                      <div>
+                        <div className="factmeta">
+                          <span
+                            className={
+                              "tag " + (f.approved ? "good" : "warning")
                             }
                           >
-                            <option value="achieved">Achieved outcome</option>
-                            <option value="goal">Future goal</option>
-                          </select>
-                          <button
-                            className={f.approved ? "textbutton" : "secondary"}
-                            disabled={busy}
-                            onClick={() =>
-                              act({
-                                action: "fact",
-                                id: f.id,
-                                approved: !f.approved,
-                              })
-                            }
-                          >
-                            {f.approved ? "Revoke approval" : "Approve fact"}
-                          </button>
+                            {f.approved ? "✓ Approved" : "◷ Pending review"}
+                          </span>
+                          <small>{f.location}</small>
                         </div>
+                        <p>{f.excerpt}</p>
+                        <code>{f.id.slice(0, 12)}</code>
                       </div>
-                    ))}
+                      <div className="factactions">
+                        <select
+                          aria-label={"Fact type " + f.id}
+                          value={f.kind}
+                          onChange={(e) =>
+                            act({
+                              action: "fact",
+                              id: f.id,
+                              kind: e.target.value,
+                              approved: false,
+                            })
+                          }
+                        >
+                          <option value="achieved">Achieved outcome</option>
+                          <option value="goal">Future goal</option>
+                        </select>
+                        <button
+                          className={f.approved ? "textbutton" : "secondary"}
+                          disabled={busy}
+                          onClick={() =>
+                            act({
+                              action: "fact",
+                              id: f.id,
+                              approved: !f.approved,
+                            })
+                          }
+                        >
+                          {f.approved ? "Revoke approval" : "Approve fact"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </section>
               ))}
             </>
+          )}
+          {tab === "evidence" && (
+            <div className="workflow-next">
+              <div>
+                <strong>Evidence reviewed?</strong>
+                <p>
+                  Prepare the answers for {g.name}, using only approved facts
+                  within its period.
+                </p>
+              </div>
+              <button
+                className="primary"
+                onClick={() => navigate("application")}
+              >
+                Continue to answers →
+              </button>
+            </div>
+          )}
+          {tab === "spending" && (
+            <div className="workflow-next">
+              <div>
+                <strong>Numbers reconciled?</strong>
+                <p>
+                  Review the application and financial report together before
+                  approving.
+                </p>
+              </div>
+              <button className="primary" onClick={() => navigate("review")}>
+                Continue to staff review →
+              </button>
+            </div>
           )}
           {tab === "application" && (
             <>
               <div className="stats">
                 <Stat
                   label="Approved evidence"
-                  value={String(approved)}
-                  detail="Staff-reviewed facts ready to use"
+                  value={String(approvedForGrant)}
+                  detail="Staff-reviewed facts within this grant period"
                 />
                 <Stat
                   label="Application answers"
@@ -483,6 +767,12 @@ export default function Home() {
                                 <div className="gap" key={j}>
                                   <strong>Evidence gap</strong>
                                   <p>{gap}</p>
+                                  <button
+                                    className="textbutton"
+                                    onClick={() => navigate("evidence")}
+                                  >
+                                    Review supporting records →
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -609,7 +899,7 @@ export default function Home() {
                     <p>Your grant report uses the same funder period.</p>
                     <button
                       className="textbutton"
-                      onClick={() => setTab("spending")}
+                      onClick={() => navigate("spending")}
                     >
                       Open grant spending →
                     </button>
@@ -669,15 +959,10 @@ export default function Home() {
                     aria-label="CSV file"
                     type="file"
                     accept=".csv,text/csv"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file)
-                        (
-                          e.target.form?.elements.namedItem(
-                            "csv",
-                          ) as HTMLTextAreaElement
-                        ).value = await file.text();
-                    }}
+                    disabled={readingFile || busy}
+                    onChange={(e) =>
+                      void readImportFile(e.currentTarget, "csv")
+                    }
                   />
                   <textarea
                     aria-label="CSV contents"
@@ -688,8 +973,8 @@ export default function Home() {
                       "id,date,payee,amount\nNEW1,2026-09-01,Family supplies,100.00"
                     }
                   />
-                  <button className="primary" disabled={busy}>
-                    Validate & import
+                  <button className="primary" disabled={busy || readingFile}>
+                    {readingFile ? "Reading CSV…" : "Validate & import"}
                   </button>
                 </form>
               )}
@@ -839,6 +1124,7 @@ export default function Home() {
                             ))}
                           </select>
                           <input
+                            key={remaining}
                             aria-label={"Allocation amount for " + t.id}
                             name="amount"
                             type="number"
@@ -983,6 +1269,26 @@ export default function Home() {
                         {errors.map((e, i) => (
                           <p key={i}>◷ {e}</p>
                         ))}
+                        <div className="blocker-actions">
+                          <button
+                            className="textbutton"
+                            onClick={() => navigate("application")}
+                          >
+                            Fix answers →
+                          </button>
+                          <button
+                            className="textbutton"
+                            onClick={() => navigate("evidence")}
+                          >
+                            Check evidence →
+                          </button>
+                          <button
+                            className="textbutton"
+                            onClick={() => navigate("spending")}
+                          >
+                            Check spending →
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="ready">
@@ -1032,9 +1338,19 @@ export default function Home() {
                         </a>
                       </div>
                     ) : (
-                      <button className="secondary full" disabled>
-                        Export after approval
-                      </button>
+                      <div className="export-blocked">
+                        <p>
+                          Downloads are locked until staff approve this exact
+                          application and report.
+                        </p>
+                        <button
+                          className="secondary full"
+                          disabled={busy}
+                          onClick={() => void checkExport()}
+                        >
+                          Check export availability
+                        </button>
+                      </div>
                     )}
                     <small>
                       Download only. Staff submit through the funder’s portal.
@@ -1059,58 +1375,44 @@ export default function Home() {
         </div>
       )}
       {evidence && (
-        <div className="modalback" onClick={() => setEvidence(undefined)}>
-          <section
-            className="modal"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Claim evidence"
-          >
-            <div className="sectionhead">
-              <span className="small-label">CLAIM-LEVEL EVIDENCE</span>
-              <button
-                className="close"
-                aria-label="Close evidence"
-                onClick={() => setEvidence(undefined)}
-              >
-                ×
-              </button>
-            </div>
-            <span className={"tag " + (evidence.approved ? "good" : "warning")}>
-              {evidence.approved ? "✓ Staff approved" : "Pending approval"}
-            </span>
-            <blockquote>{evidence.excerpt}</blockquote>
-            <h3>
-              {data.sources.find((s) => s.id === evidence.sourceId)?.name}
-            </h3>
-            <p>
-              {evidence.location} ·{" "}
-              {evidence.kind === "goal" ? "Future goal" : "Achieved outcome"}
-            </p>
-            <p className="muted">
-              Applicable period:{" "}
-              {
-                data.sources.find((s) => s.id === evidence.sourceId)
-                  ?.periodStart
-              }{" "}
-              —{" "}
-              {data.sources.find((s) => s.id === evidence.sourceId)?.periodEnd}
-            </p>
-            <code>{evidence.id}</code>
-            <details>
-              <summary>View original source</summary>
-              <pre>
-                {data.sources.find((s) => s.id === evidence.sourceId)?.text}
-              </pre>
-            </details>
-          </section>
-        </div>
+        <Modal label="Claim evidence" onClose={() => setEvidence(undefined)}>
+          <div className="sectionhead">
+            <span className="small-label">CLAIM-LEVEL EVIDENCE</span>
+            <button
+              className="close"
+              aria-label="Close evidence"
+              onClick={() => setEvidence(undefined)}
+            >
+              ×
+            </button>
+          </div>
+          <span className={"tag " + (evidence.approved ? "good" : "warning")}>
+            {evidence.approved ? "✓ Staff approved" : "Pending approval"}
+          </span>
+          <blockquote>{evidence.excerpt}</blockquote>
+          <h3>{data.sources.find((s) => s.id === evidence.sourceId)?.name}</h3>
+          <p>
+            {evidence.location} ·{" "}
+            {evidence.kind === "goal" ? "Future goal" : "Achieved outcome"}
+          </p>
+          <p className="muted">
+            Applicable period:{" "}
+            {data.sources.find((s) => s.id === evidence.sourceId)?.periodStart}{" "}
+            — {data.sources.find((s) => s.id === evidence.sourceId)?.periodEnd}
+          </p>
+          <code>{evidence.id}</code>
+          <details>
+            <summary>View original source</summary>
+            <pre>
+              {data.sources.find((s) => s.id === evidence.sourceId)?.text}
+            </pre>
+          </details>
+        </Modal>
       )}
       {edit && (
-        <div className="modalback">
+        <Modal label="Edit answer" onClose={() => setEdit(undefined)}>
           <form
-            className="modal"
+            className="editform"
             onSubmit={async (e) => {
               e.preventDefault();
               if (
@@ -1124,6 +1426,7 @@ export default function Home() {
               <button
                 type="button"
                 className="close"
+                aria-label="Close editor"
                 onClick={() => setEdit(undefined)}
               >
                 ×
@@ -1155,7 +1458,7 @@ export default function Home() {
               Save new version
             </button>
           </form>
-        </div>
+        </Modal>
       )}
     </div>
   );
