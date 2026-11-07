@@ -465,7 +465,7 @@ export function seed(): State {
       {
         id: "s2",
         name: "2027 board-approved plan.txt",
-        text: "Tidepath aims to support 150 families in 2027.\nA preliminary estimate suggests a 92% success rate.",
+        text: "Tidepath aims to support 150 families by June 2027.\nA preliminary estimate suggests a 92% success rate.",
         periodStart: "2027-01-01",
         periodEnd: "2027-06-30",
       },
@@ -491,7 +491,7 @@ export function seed(): State {
       {
         id: "f3",
         sourceId: "s2",
-        excerpt: "Tidepath aims to support 150 families in 2027.",
+        excerpt: "Tidepath aims to support 150 families by June 2027.",
         location: "Line 1",
         kind: "goal",
         approved: false,
@@ -551,7 +551,7 @@ export function seed(): State {
       {
         id: "q3",
         grantId: "g2",
-        prompt: "What are your goals for the next program year?",
+        prompt: "What are your goals for this funded period?",
         limit: 80,
         kind: "goal",
         required: "",
