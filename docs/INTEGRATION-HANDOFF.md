@@ -30,3 +30,16 @@ To reproduce the browser run, install dependencies with `npm ci`, ensure Google 
 - Live OpenAI generation has not been exercised with an authorized API key; fixture mode is the verified path.
 - Playwright checks browser behavior and dashboard width, but no manual screenshot review or full visual layout assessment has been completed.
 - The app still runs on loopback only. No public deployment, funder submission, or real nonprofit data is included.
+
+## Part 1 completion check
+
+The dashboard now cancels a keyboard move when its handle loses focus, preserving the saved order and clearing the picked-up state. Its regression test failed before the fix and passes afterward. Mouse drop, touch events, keyboard placement/cancellation, saved order, reset, and unavailable-storage recovery remain covered by component tests.
+
+`npm test` now includes the three standalone Part 1 component checks (dashboard, dialog focus, and error/evidence recovery). On this revision, 30 engine/acceptance tests and all three component checks passed. The two server-dependent tests were then run separately against a fresh fictional production server on loopback port 4320, resetting between them; both passed without skips. Production build and typecheck also passed. The prior desktop/mobile browser evidence above belongs to the integration base; it was not rerun for this focus-cancellation change. Manual visual review and live AI remain unverified.
+
+To rerun the combined UI/API checks, start a production server with an isolated `GRANTPROOF_DB`, then run these separately, resetting that same fictional database between runs:
+
+```sh
+GRANTPROOF_INTEGRATION_URL=http://127.0.0.1:4320 node --import tsx --test tests/part1-part2.test.ts
+GRANTPROOF_SYNTHETIC_URL=http://127.0.0.1:4320 node --import tsx --test tests/synthetic-flow.test.ts
+```

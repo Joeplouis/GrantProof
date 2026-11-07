@@ -221,6 +221,14 @@ export default function Dashboard({
                   aria-pressed={keyboardPanel === panel}
                   aria-describedby="dashboard-move-help"
                   onKeyDown={(event) => keyboardMove(event, panel)}
+                  onBlur={() => {
+                    if (keyboardPanel === panel) {
+                      cancelMove();
+                      setAnnouncement(
+                        "Move cancelled. Your layout is unchanged.",
+                      );
+                    }
+                  }}
                   onPointerDown={(event) => {
                     if (event.pointerType === "mouse") return;
                     event.preventDefault();

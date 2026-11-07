@@ -111,6 +111,15 @@ test("dashboard drag/drop, keyboard controls, saved order and reset preserve gra
     window.localStorage.getItem("grantproof.dashboard-layout.v1"),
     savedBeforeCancel,
   );
+  fireEvent.keyDown(budgetHandle, { key: " " });
+  fireEvent.keyDown(budgetHandle, { key: "Home" });
+  fireEvent.blur(budgetHandle);
+  assert.equal(budgetHandle.getAttribute("aria-pressed"), "false");
+  assert.equal(panels()[1], "Budget snapshot");
+  assert.equal(
+    window.localStorage.getItem("grantproof.dashboard-layout.v1"),
+    savedBeforeCancel,
+  );
   Object.defineProperty(dom.window, "PointerEvent", {
     configurable: true,
     value: class extends dom.window.MouseEvent {
