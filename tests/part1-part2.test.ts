@@ -28,10 +28,11 @@ test(
     const fetchServer = globalThis.fetch;
     globalThis.fetch = (input, init) =>
       fetchServer(new URL(String(input), base), init);
-    const { render, screen, within, fireEvent, waitFor, cleanup } =
+    const { render, screen, within, fireEvent, waitFor, cleanup, configure } =
       await import("@testing-library/react");
     const { default: userEvent } = await import("@testing-library/user-event");
     const { default: Home } = await import("../app/page");
+    configure({ asyncUtilTimeout: 5000 });
     const user = userEvent.setup({ document: dom.window.document });
     async function state() {
       return (await fetchServer(base + "/api/workspace")).json();
@@ -170,6 +171,15 @@ test(
         "0.51",
         "The allocation form must reset to the remaining balance after a partial allocation.",
       );
+      assert.equal(
+        (
+          screen.getByRole("combobox", {
+            name: "Category for IT001",
+          }) as HTMLSelectElement
+        ).value,
+        "Program supplies",
+        "Refreshing the amount must preserve the staff-selected category.",
+      );
       fireEvent.change(
         screen.getByRole("combobox", { name: "Category for IT001" }),
         { target: { value: "Program supplies" } },
@@ -209,6 +219,17 @@ test(
       );
       await screen.findByText(/Malformed quote in CSV/);
       assert.equal((await state()).transactions.length, count);
+      await go(/Review & export/);
+      assert.ok(
+        !screen.queryByRole("link", { name: "↓ Download approved report" }),
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Approve this snapshot" }),
+      );
+      await screen.findByRole("link", { name: "↓ Download approved report" });
+      const financialApproval = await exported();
+      assert.equal(financialApproval.snapshot.report.spent, 1620101);
+      assert.equal(financialApproval.snapshot.report.balance, 3379899);
       await go(/Dashboard/);
       assert.ok(
         within(
@@ -260,6 +281,12 @@ test(
         final.reports.find((r: { grantId: string }) => r.grantId === "g1")
           .spent,
         1620101,
+      );
+      assert.ok(
+        final.currentApprovals.some(
+          (a: { id: string }) => a.id === financialApproval.id,
+        ),
+        "An allocation outside g1 dates must not invalidate its approved report.",
       );
       console.log(
         "PASS: integrated dashboard, permanent approval invalidation, exact snapshots, duplicate/malformed CSV, partial-cent allocations and fiscal switching.",
