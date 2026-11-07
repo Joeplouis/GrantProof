@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import Dashboard from "@/components/Dashboard";
+import Modal from "@/components/Modal";
 import type { State, Fact, Claim } from "@/lib/store";
 type Report = {
   grantId: string;
@@ -32,6 +34,7 @@ const money = (n: number) =>
   }).format(n / 100);
 const count = (s: string) => (s.trim() ? s.trim().split(/\s+/).length : 0);
 const tabs = [
+  ["dashboard", "00", "Dashboard", "▦"],
   ["evidence", "01", "Evidence library", "▤"],
   ["application", "02", "Application workspace", "✎"],
   ["spending", "03", "Grant spending", "▥"],
@@ -47,14 +50,56 @@ export default function Home() {
   const [live, setLive] = useState(false);
   const [edit, setEdit] = useState<{ id: string; claims: Claim[] }>();
   const [showImport, setShowImport] = useState(false);
-  useEffect(() => {
-    fetch("/api/workspace")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(() =>
-        setNotice("Unable to load workspace. Retry after starting the server."),
+  const [loadError, setLoadError] = useState("");
+  const [noticeError, setNoticeError] = useState(false);
+  async function loadWorkspace() {
+    setLoadError("");
+    try {
+      const r = await fetch("/api/workspace");
+      if (!r.ok) throw Error(`Workspace could not be loaded (${r.status}).`);
+      setData(await r.json());
+    } catch (e) {
+      setLoadError(
+        e instanceof Error ? e.message : "Workspace could not be loaded.",
       );
+    }
+  }
+  useEffect(() => {
+    void loadWorkspace();
   }, []);
+  function navigate(screen: string) {
+    setTab(screen);
+    setShowImport(false);
+    setEvidence(undefined);
+    setEdit(undefined);
+  }
+  async function checkExport() {
+    setBusy(true);
+    try {
+      const response = await fetch(
+        "/api/export?grant=" + encodeURIComponent(grant),
+      );
+      if (!response.ok) {
+        const body = await response.json();
+        throw Error(body.error || "Staff approval is required before export.");
+      }
+      setNoticeError(false);
+      setNotice(
+        "An approved export is available. Refresh the workspace to see the current download links.",
+      );
+      await loadWorkspace();
+    } catch (error) {
+      setNoticeError(true);
+      setNotice(
+        "Export blocked: " +
+          (error instanceof Error
+            ? error.message
+            : "Staff approval is required."),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function act(body: unknown) {
     setBusy(true);
     try {
@@ -66,9 +111,11 @@ export default function Home() {
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
       setData(d);
+      setNoticeError(false);
       setNotice(d.message);
       return true;
     } catch (e) {
+      setNoticeError(true);
       setNotice(e instanceof Error ? e.message : "Request failed");
       return false;
     } finally {
@@ -79,7 +126,19 @@ export default function Home() {
     return (
       <main className="loading">
         <div className="brandmark">G</div>
-        <h1>Opening your workspace…</h1>
+        <h1>
+          {loadError
+            ? "Your workspace could not be opened."
+            : "Opening your workspace…"}
+        </h1>
+        {loadError && (
+          <>
+            <p role="alert">{loadError}</p>
+            <button className="primary" onClick={() => void loadWorkspace()}>
+              Retry loading workspace
+            </button>
+          </>
+        )}
         <p>GrantProof · local fictional demo</p>
       </main>
     );
@@ -110,7 +169,9 @@ export default function Home() {
           {tabs.map(([key, num, label, icon]) => (
             <button
               key={key}
-              onClick={() => setTab(key)}
+              onClick={() => navigate(key)}
+              aria-current={tab === key ? "page" : undefined}
+              title={label}
               className={tab === key ? "active" : ""}
             >
               <span className="navicon">{icon}</span>
@@ -154,22 +215,26 @@ export default function Home() {
             <div>
               <div className="eyebrow">LESS PAPERWORK. MORE POSSIBILITY.</div>
               <h1>
-                {tab === "application"
-                  ? "Your impact, backed by evidence."
-                  : tab === "evidence"
-                    ? "Good answers start here."
-                    : tab === "spending"
-                      ? "Every dollar, accounted for."
-                      : "Ready for a human sign-off."}
+                {tab === "dashboard"
+                  ? "A clear view of your grant."
+                  : tab === "application"
+                    ? "Your impact, backed by evidence."
+                    : tab === "evidence"
+                      ? "Good answers start here."
+                      : tab === "spending"
+                        ? "Every dollar, accounted for."
+                        : "Ready for a human sign-off."}
               </h1>
               <p className="subtitle">
-                {tab === "application"
-                  ? "Turn approved facts into funder-ready answers. Keep the source close."
-                  : tab === "evidence"
-                    ? "One trusted home for the facts behind your applications."
-                    : tab === "spending"
-                      ? "Keep QuickBooks. Reconcile your CSV against the funder’s rules."
-                      : "Review the application and financial report as one versioned package."}
+                {tab === "dashboard"
+                  ? "Arrange your workspace around what needs attention today."
+                  : tab === "application"
+                    ? "Turn approved facts into funder-ready answers. Keep the source close."
+                    : tab === "evidence"
+                      ? "One trusted home for the facts behind your applications."
+                      : tab === "spending"
+                        ? "Keep QuickBooks. Reconcile your CSV against the funder’s rules."
+                        : "Review the application and financial report as one versioned package."}
               </p>
             </div>
             <span className="privacy">♧ &nbsp; Local-first workspace</span>
@@ -181,7 +246,14 @@ export default function Home() {
               <select
                 aria-label="Current grant"
                 value={grant}
-                onChange={(e) => setGrant(e.target.value)}
+                onChange={(e) => {
+                  setGrant(e.target.value);
+                  setShowImport(false);
+                  setEvidence(undefined);
+                  setEdit(undefined);
+                  setNotice("");
+                }}
+                disabled={busy}
               >
                 {data.grants.map((g) => (
                   <option key={g.id} value={g.id}>
@@ -201,7 +273,10 @@ export default function Home() {
             </span>
           </div>
           {notice && (
-            <div className="notice" role="status">
+            <div
+              className={"notice" + (noticeError ? " notice-error" : "")}
+              role={noticeError ? "alert" : "status"}
+            >
               <span>{notice}</span>
               <button
                 aria-label="Dismiss notification"
@@ -210,6 +285,23 @@ export default function Home() {
                 ×
               </button>
             </div>
+          )}
+          {tab === "dashboard" && (
+            <Dashboard
+              approvedFacts={approved}
+              pendingFacts={data.facts.length - approved}
+              answersReady={
+                questions.filter((q) => {
+                  const d = data.drafts.find((d) => d.questionId === q.id);
+                  return d && !(data.draftErrors[d.id] || d.gaps).length;
+                }).length
+              }
+              questionCount={questions.length}
+              spending={{ ...report, end: g.end }}
+              approved={!!current}
+              blockers={errors}
+              navigate={navigate}
+            />
           )}
           {tab === "evidence" && (
             <>
@@ -609,7 +701,7 @@ export default function Home() {
                     <p>Your grant report uses the same funder period.</p>
                     <button
                       className="textbutton"
-                      onClick={() => setTab("spending")}
+                      onClick={() => navigate("spending")}
                     >
                       Open grant spending →
                     </button>
@@ -1032,9 +1124,19 @@ export default function Home() {
                         </a>
                       </div>
                     ) : (
-                      <button className="secondary full" disabled>
-                        Export after approval
-                      </button>
+                      <div className="export-blocked">
+                        <p>
+                          Downloads are locked until staff approve this exact
+                          application and report.
+                        </p>
+                        <button
+                          className="secondary full"
+                          disabled={busy}
+                          onClick={() => void checkExport()}
+                        >
+                          Check export availability
+                        </button>
+                      </div>
                     )}
                     <small>
                       Download only. Staff submit through the funder’s portal.
@@ -1059,58 +1161,44 @@ export default function Home() {
         </div>
       )}
       {evidence && (
-        <div className="modalback" onClick={() => setEvidence(undefined)}>
-          <section
-            className="modal"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Claim evidence"
-          >
-            <div className="sectionhead">
-              <span className="small-label">CLAIM-LEVEL EVIDENCE</span>
-              <button
-                className="close"
-                aria-label="Close evidence"
-                onClick={() => setEvidence(undefined)}
-              >
-                ×
-              </button>
-            </div>
-            <span className={"tag " + (evidence.approved ? "good" : "warning")}>
-              {evidence.approved ? "✓ Staff approved" : "Pending approval"}
-            </span>
-            <blockquote>{evidence.excerpt}</blockquote>
-            <h3>
-              {data.sources.find((s) => s.id === evidence.sourceId)?.name}
-            </h3>
-            <p>
-              {evidence.location} ·{" "}
-              {evidence.kind === "goal" ? "Future goal" : "Achieved outcome"}
-            </p>
-            <p className="muted">
-              Applicable period:{" "}
-              {
-                data.sources.find((s) => s.id === evidence.sourceId)
-                  ?.periodStart
-              }{" "}
-              —{" "}
-              {data.sources.find((s) => s.id === evidence.sourceId)?.periodEnd}
-            </p>
-            <code>{evidence.id}</code>
-            <details>
-              <summary>View original source</summary>
-              <pre>
-                {data.sources.find((s) => s.id === evidence.sourceId)?.text}
-              </pre>
-            </details>
-          </section>
-        </div>
+        <Modal label="Claim evidence" onClose={() => setEvidence(undefined)}>
+          <div className="sectionhead">
+            <span className="small-label">CLAIM-LEVEL EVIDENCE</span>
+            <button
+              className="close"
+              aria-label="Close evidence"
+              onClick={() => setEvidence(undefined)}
+            >
+              ×
+            </button>
+          </div>
+          <span className={"tag " + (evidence.approved ? "good" : "warning")}>
+            {evidence.approved ? "✓ Staff approved" : "Pending approval"}
+          </span>
+          <blockquote>{evidence.excerpt}</blockquote>
+          <h3>{data.sources.find((s) => s.id === evidence.sourceId)?.name}</h3>
+          <p>
+            {evidence.location} ·{" "}
+            {evidence.kind === "goal" ? "Future goal" : "Achieved outcome"}
+          </p>
+          <p className="muted">
+            Applicable period:{" "}
+            {data.sources.find((s) => s.id === evidence.sourceId)?.periodStart}{" "}
+            — {data.sources.find((s) => s.id === evidence.sourceId)?.periodEnd}
+          </p>
+          <code>{evidence.id}</code>
+          <details>
+            <summary>View original source</summary>
+            <pre>
+              {data.sources.find((s) => s.id === evidence.sourceId)?.text}
+            </pre>
+          </details>
+        </Modal>
       )}
       {edit && (
-        <div className="modalback">
+        <Modal label="Edit answer" onClose={() => setEdit(undefined)}>
           <form
-            className="modal"
+            className="editform"
             onSubmit={async (e) => {
               e.preventDefault();
               if (
@@ -1124,6 +1212,7 @@ export default function Home() {
               <button
                 type="button"
                 className="close"
+                aria-label="Close editor"
                 onClick={() => setEdit(undefined)}
               >
                 ×
@@ -1155,7 +1244,7 @@ export default function Home() {
               Save new version
             </button>
           </form>
-        </div>
+        </Modal>
       )}
     </div>
   );
