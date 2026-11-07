@@ -27,6 +27,8 @@ To reproduce the browser run, install dependencies with `npm ci`, ensure Google 
 
 ## Remaining checks
 
+Part 3's README is already included. Its fixture/API compatibility and two additional browser checks are recorded in [the Part 3 integration status](PART3-INTEGRATION.md); live-generation acceptance remains unverified.
+
 - Live OpenAI generation has not been exercised with an authorized API key; fixture mode is the verified path.
 - Chromium screenshot inspection is complete at desktop, Pixel 7, and compact-phone sizes. See [visual QA](VISUAL-QA.md) for the mobile layout fix, screenshots, and seven passing browser checks. Physical-device and Safari checks remain outside this review.
 - The app still runs on loopback only. No public deployment, funder submission, or real nonprofit data is included.
