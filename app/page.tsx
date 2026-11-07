@@ -1124,6 +1124,7 @@ export default function Home() {
                             ))}
                           </select>
                           <input
+                            key={remaining}
                             aria-label={"Allocation amount for " + t.id}
                             name="amount"
                             type="number"
