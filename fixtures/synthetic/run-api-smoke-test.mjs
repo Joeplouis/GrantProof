@@ -128,7 +128,11 @@ async function main() {
     assert.match(s.message,/100 imported/);
     s=await post({action:'csv',text:await file('04-stress-100-transactions.csv')});
     assert.match(s.message,/100 duplicates/);
-    pass('Additional 100-row stress import and duplicate retry');
+    s=await post({action:'generate',id:'q1'});
+    assert.ok(s.reviewErrors.g1.some(error=>error.toLowerCase().includes('unallocated')));
+    const blocked=await post({action:'approve',grantId:'g1',reviewer:'Synthetic QA Reviewer'},400);
+    assert.match(blocked.error,/unallocated/i);
+    pass('Additional 100-row stress import, duplicate retry and unallocated approval block');
   }
   console.log(`\nSUCCESS: ${passed} synthetic end-to-end checks passed.\nRun npm run reset in the app repo to restore the clean fictional demo.`);
 }

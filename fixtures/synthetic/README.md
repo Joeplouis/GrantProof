@@ -14,7 +14,7 @@
 | `06-approved-goals-plan-2027.txt` | Goals are different from accomplishments; future funder period | Import both pending; approve as goals; regenerate q3 |
 | `07-unapproved-unsafe-claims.txt` | Unapproved estimate and prompt-injection text | Leave both pending; neither can appear in generated claims |
 | `expected-results.json` | Machine-readable amounts, source periods, and allocation map | Totals below |
-| `run-api-smoke-test.mjs` | Real HTTP requests against running GrantProof | 9 end-to-end test groups, optional 100-row stress |
+| `run-api-smoke-test.mjs` | Real HTTP requests against running GrantProof | 10 end-to-end test groups, 11 with the optional 100-row stress |
 
 ## Expected amounts after test allocations
 
@@ -72,3 +72,7 @@ On a clean reset, open the four app workspaces and follow these steps:
 ## Limits and honesty
 
 This pack is prepared and checked **offline** for file structure, unique IDs, valid dates and expected totals. It is **not proof that the app passes until the script runs against a running GrantProof instance**. The smoke test uses fixture generation; a real OpenAI Agents SDK call still needs separate testing with an authorized API key. Visual browser responsiveness, accessibility, login, and deployment are separate acceptance steps.
+
+## Verified local execution — November 7, 2026
+
+The fixture API pack has now passed against an isolated combined Part 1/Part 2 production build: 11 scenario groups with the 100-row stress case, including an explicit approval block while stress rows remain unallocated. All five records in `03-period-boundary-transactions.csv` were also checked through the API with `node tests/synthetic-boundaries-api.mjs` from the repo root. The combined engine/UI suite passed all 30 tests, with no skips. See [the verification receipt](verification-2026-11-07.json) for code revisions, exact totals and limits. These results use fictional fixture generation; live AI and native visual browser QA remain unverified.
