@@ -23,7 +23,8 @@ Fictional demo data only. No production records, submissions, deployments or mes
 | SQLite relational persistence                  | PASS — core test 13 closes/reopens an on-disk DB, preserves all entities, rejects dangling Source FK.                                                                                                  |
 | Four integrated React screens                  | PASS — `qa:ui` JSDOM test uses the real running API, clicks generation/citations/navigation/approval, checks spending and download links, edits a claim, confirms approval disabled and export absent. |
 | TypeScript / production build                  | PASS — `npm run typecheck`; `npm run build` (Next.js 16.4.5).                                                                                                                                          |
-| Visual browser QA                              | **BLOCKED** — browser connector host unavailable; native Chrome app control timed out. No browser screenshot or desktop/mobile layout verification is claimed.                                         |
+| Real-browser functional QA                     | PASS on the integration branch — Playwright desktop/mobile Chrome runs synthetic source and CSV imports, evidence and drafts, real HTML/JSON downloads, approval invalidation, keyboard layout persistence, and a two-session stale-export check. |
+| Manual visual QA                               | **NOT VERIFIED** — passing browser tests check the mobile dashboard width, but no human screenshot review or full visual layout assessment is claimed. |
 | Live OpenAI generation                         | **NOT VERIFIED** — no authorized API credential or credential-setup tool available. Fixture output is labeled; live path typechecks but has not called the API.                                        |
 | Actual submission-tab deliverable fields       | **NOT VERIFIED** — official URL returned a client-rendered shell; browser unavailable. See demo checklist.                                                                                             |
 
@@ -42,8 +43,9 @@ npm run qa:runtime
 npm run reset
 npm run qa:ui
 npm run reset
+npm run test:e2e  # production build + isolated desktop/mobile Chrome checks
 ```
 
 Core tests are in `tests/core.test.ts`; React integration in `tests/ui.test.tsx`; runtime API assertions in `scripts/runtime-check.mjs`. Runtime/component checks intentionally change only the fictional workspace. Do not run both at once; reset between them.
 
-No screenshot artifact exists because browser access failed. JSDOM component QA does not verify visual layout, focus behavior, downloads in a browser, or responsiveness. Those remain an explicit handoff check, not a passed browser test.
+Playwright now verifies browser focus behavior, downloads, and dashboard width on desktop and mobile Chrome using an isolated fictional database. JSDOM remains the component-level check; manual visual layout review and live AI testing remain separate handoff checks.

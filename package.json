@@ -9,6 +9,7 @@
     "start": "next start --hostname 127.0.0.1 --port 4317",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "npm run build && playwright test",
     "reset": "tsx scripts/reset.ts",
     "qa:runtime": "node scripts/runtime-check.mjs",
     "qa:ui": "tsx --test tests/ui.test.tsx",
@@ -26,6 +27,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/better-sqlite3": "^9.6.0",
