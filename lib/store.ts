@@ -62,6 +62,7 @@ export type Approval = {
   snapshot: Snapshot;
   reviewer: string;
   at: string;
+  invalidatedAt?: string;
 };
 export type State = {
   sources: Source[];
@@ -139,7 +140,25 @@ export function read(db: Database.Database): State {
   ) as State;
 }
 export function save(db: Database.Database, s: State) {
-  db.transaction(() => {
+  const approvals = db.transaction(() => {
+    const priorApprovals = new Map(read(db).approvals.map((a) => [a.id, a]));
+    const now = new Date().toISOString();
+    const validity = new Map<string, { ready: boolean; hash: string }>();
+    const updatedApprovals = s.approvals.map((a) => {
+      const invalidatedAt =
+        priorApprovals.get(a.id)?.invalidatedAt || a.invalidatedAt;
+      if (invalidatedAt) return { ...a, invalidatedAt };
+      if (!validity.has(a.grantId))
+        validity.set(a.grantId, {
+          ready: reviewErrors(s, a.grantId).length === 0,
+          hash: hash(snapshot(s, a.grantId)),
+        });
+      const current = validity.get(a.grantId)!;
+      return current.ready && current.hash === a.hash
+        ? a
+        : { ...a, invalidatedAt: now };
+    });
+    const persisted = { ...s, approvals: updatedApprovals };
     const order = [
       "sources",
       "grants",
@@ -154,9 +173,12 @@ export function save(db: Database.Database, s: State) {
       db.prepare(`DELETE FROM ${name}`).run();
     for (const name of order) {
       const insert = db.prepare(`INSERT INTO ${name}(id,body) VALUES (?,?)`);
-      for (const row of s[name]) insert.run(row.id, JSON.stringify(row));
+      for (const row of persisted[name])
+        insert.run(row.id, JSON.stringify(row));
     }
+    return updatedApprovals;
   })();
+  s.approvals = approvals;
 }
 export const id = () => randomUUID();
 export const hash = (o: unknown) =>
@@ -220,7 +242,7 @@ export function allocate(
   if (
     !t ||
     !g ||
-    !(category in g.categories) ||
+    !Object.hasOwn(g.categories, category) ||
     !Number.isSafeInteger(cents) ||
     cents <= 0
   )
@@ -237,34 +259,55 @@ export function allocate(
     throw Error("Allocation exceeds the transaction amount across grants.");
   s.allocations.push({ id: id(), transactionId, grantId, category, cents });
 }
-// RFC4180-style parsing, including quoted commas, escaped quotes and CRLF.
-export function parseCSV(text: string) {
+// Strict quoted fields: quoted commas/newlines and escaped quotes are data;
+// characters after a closing quote are rejected rather than silently rewritten.
+export function parseCSV(input: string) {
+  const text = input.replace(/^\uFEFF/, "");
   const rows: string[][] = [];
   let row: string[] = [],
     cell = "",
-    quoted = false;
+    mode: "field" | "quoted" | "closed" = "field";
+  const field = () => {
+    row.push(cell);
+    cell = "";
+    mode = "field";
+  };
+  const record = () => {
+    field();
+    rows.push(row);
+    row = [];
+  };
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
+    if (mode === "quoted") {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else mode = "closed";
+      } else cell += c;
+      continue;
+    }
+    if (c === ",") {
+      field();
+      continue;
+    }
+    if (c === "\r" || c === "\n") {
+      record();
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      continue;
+    }
+    if (mode === "closed")
+      throw Error(
+        "Malformed quote in CSV: unexpected character after closing quote.",
+      );
     if (c === '"') {
-      if (quoted && text[i + 1] === '"') {
-        cell += '"';
-        i++;
-      } else if (!cell || quoted) quoted = !quoted;
-      else throw Error("Malformed quote in CSV.");
-    } else if (!quoted && (c === "," || c === "\n")) {
-      row.push(cell.replace(/\r$/, ""));
-      cell = "";
-      if (c === "\n") {
-        rows.push(row);
-        row = [];
-      }
+      if (cell) throw Error("Malformed quote in CSV.");
+      mode = "quoted";
     } else cell += c;
   }
-  if (quoted) throw Error("Unclosed quoted CSV field.");
-  if (cell || row.length) {
-    row.push(cell.replace(/\r$/, ""));
-    rows.push(row);
-  }
+  if (mode === "quoted") throw Error("Unclosed quoted CSV field.");
+  if (cell || row.length || mode === "closed") record();
   return rows.filter((r) => r.some((c) => c.trim()));
 }
 export function importCSV(s: State, text: string) {
@@ -435,7 +478,7 @@ export function approve(s: State, grantId: string, reviewer: string) {
   if (errors.length) throw Error(errors.join("\n"));
   if (!reviewer.trim()) throw Error("Reviewer name is required.");
   const snap = snapshot(s, grantId);
-  const a = {
+  const a: Approval = {
     id: id(),
     grantId,
     hash: hash(snap),
@@ -448,7 +491,10 @@ export function approve(s: State, grantId: string, reviewer: string) {
 }
 export function currentApproval(s: State, g: string) {
   const a = s.approvals.filter((a) => a.grantId === g).at(-1);
-  return a && reviewErrors(s, g).length === 0 && a.hash === hash(snapshot(s, g))
+  return a &&
+    !a.invalidatedAt &&
+    reviewErrors(s, g).length === 0 &&
+    a.hash === hash(snapshot(s, g))
     ? a
     : undefined;
 }
