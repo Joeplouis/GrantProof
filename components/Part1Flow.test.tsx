@@ -39,8 +39,33 @@ test(
     await user.click(
       screen.getByRole("button", { name: "Move Budget snapshot earlier" }),
     );
+    await user.click(screen.getByRole("button", { name: "Review evidence →" }));
+    await user.click(screen.getByRole("button", { name: "＋ Import source" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Document name" }), {
+      target: { value: "UI workflow register.txt" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Source text" }), {
+      target: { value: "Fictional staff recorded 12 community workshops." },
+    });
     await user.click(
-      screen.getByRole("button", { name: "Prepare application →" }),
+      screen.getByRole("button", { name: "Extract candidate facts" }),
+    );
+    const imported = await screen.findByRole("heading", {
+      name: "UI workflow register.txt",
+    });
+    await user.click(
+      within(imported.closest("section")!).getByRole("button", {
+        name: "Approve fact",
+      }),
+    );
+    await waitFor(() =>
+      assert.ok(
+        !screen.queryByText("Fictional staff recorded 12 community workshops."),
+      ),
+    );
+    await user.click(screen.getByRole("button", { name: "All facts" }));
+    await user.click(
+      screen.getByRole("button", { name: "Continue to answers →" }),
     );
     await screen.findByRole("heading", {
       name: "Your impact, backed by evidence.",
@@ -90,6 +115,14 @@ test(
     });
     assert.ok(screen.getAllByText("$16,200.00").length);
     assert.ok(screen.getByText("Outside this period"));
+    await user.click(screen.getByRole("button", { name: "↑ Import CSV" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "CSV contents" }), {
+      target: {
+        value: "id,date,payee,amount\nT001,2026-01-01,Coaching team,12000.00",
+      },
+    });
+    await user.click(screen.getByRole("button", { name: "Validate & import" }));
+    await screen.findByText("0 imported · 1 duplicates skipped");
     await user.click(screen.getByRole("button", { name: /Review & export/ }));
     await screen.findByRole("heading", { name: "Ready for a human sign-off." });
     assert.ok(screen.getByText("✓ All deterministic checks passed"));

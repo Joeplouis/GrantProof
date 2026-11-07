@@ -165,10 +165,10 @@ export default function Dashboard({
                 <h3>The facts behind your story.</h3>
                 <div className="dashboard-metrics">
                   <span>
-                    <strong>{approvedFacts}</strong>approved facts
+                    <strong>{approvedFacts}</strong>approved for this period
                   </span>
                   <span>
-                    <strong>{pendingFacts}</strong>awaiting review
+                    <strong>{pendingFacts}</strong>pending for this period
                   </span>
                 </div>
                 <p>

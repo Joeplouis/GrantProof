@@ -52,6 +52,64 @@ export default function Home() {
   const [showImport, setShowImport] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [noticeError, setNoticeError] = useState(false);
+  const [factFilter, setFactFilter] = useState("all");
+  const [evidenceSearch, setEvidenceSearch] = useState("");
+  const [readingFile, setReadingFile] = useState(false);
+  async function readImportFile(
+    input: HTMLInputElement,
+    kind: "source" | "csv",
+  ) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const form = input.form;
+    if (!form) return;
+    setReadingFile(true);
+    try {
+      const valid =
+        kind === "source"
+          ? /\.(txt|md)$/i.test(file.name)
+          : /\.csv$/i.test(file.name);
+      if (!valid)
+        throw Error(
+          kind === "source"
+            ? "Choose a .txt or .md source file."
+            : "Choose a .csv spending file.",
+        );
+      const limit = kind === "source" ? 100000 : 1000000;
+      if (file.size > limit * 4)
+        throw Error("This file is too large. Import a smaller text file.");
+      const text = await file.text();
+      if (text.length > limit)
+        throw Error(
+          `File exceeds the ${limit.toLocaleString()}-character import limit.`,
+        );
+      if (!text.trim())
+        throw Error(
+          "This file is empty. Choose a file with records to review.",
+        );
+      (
+        form.elements.namedItem(
+          kind === "source" ? "text" : "csv",
+        ) as HTMLTextAreaElement
+      ).value = text;
+      if (kind === "source")
+        (form.elements.namedItem("name") as HTMLInputElement).value = file.name;
+      setNoticeError(false);
+      setNotice(
+        `${file.name} loaded for preview. Review it below, then import.`,
+      );
+    } catch (error) {
+      input.value = "";
+      setNoticeError(true);
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "This file could not be read. You can paste its text instead.",
+      );
+    } finally {
+      setReadingFile(false);
+    }
+  }
   async function loadWorkspace() {
     setLoadError("");
     try {
@@ -146,6 +204,29 @@ export default function Home() {
   const report = data.reports.find((r) => r.grantId === grant)!;
   const questions = data.questions.filter((q) => q.grantId === grant);
   const approved = data.facts.filter((f) => f.approved).length;
+  const sourceFitsGrant = (source: State["sources"][number]) =>
+    source.periodStart >= g.start && source.periodEnd <= g.end;
+  const grantFacts = data.facts.filter((f) => {
+    const source = data.sources.find((source) => source.id === f.sourceId);
+    return source && sourceFitsGrant(source);
+  });
+  const approvedForGrant = grantFacts.filter((f) => f.approved).length;
+  const filteredSources = data.sources
+    .map((source) => ({
+      ...source,
+      visibleFacts: data.facts.filter(
+        (f) =>
+          f.sourceId === source.id &&
+          (factFilter === "all" ||
+            (factFilter === "approved" ? f.approved : !f.approved)) &&
+          (!evidenceSearch ||
+            `${source.name} ${f.excerpt}`
+              .toLowerCase()
+              .includes(evidenceSearch.toLowerCase())),
+      ),
+    }))
+    .filter((source) => source.visibleFacts.length > 0);
+
   const current = data.currentApprovals.find((a) => a.grantId === grant);
   const errors = data.reviewErrors[grant];
   return (
@@ -288,8 +369,8 @@ export default function Home() {
           )}
           {tab === "dashboard" && (
             <Dashboard
-              approvedFacts={approved}
-              pendingFacts={data.facts.length - approved}
+              approvedFacts={approvedForGrant}
+              pendingFacts={grantFacts.length - approvedForGrant}
               answersReady={
                 questions.filter((q) => {
                   const d = data.drafts.find((d) => d.questionId === q.id);
@@ -351,8 +432,11 @@ export default function Home() {
                         start: f.get("start"),
                         end: f.get("end"),
                       })
-                    )
+                    ) {
                       setShowImport(false);
+                      setFactFilter("pending");
+                      setEvidenceSearch("");
+                    }
                   }}
                 >
                   <h3>Add a text source</h3>
@@ -393,20 +477,10 @@ export default function Home() {
                     <input
                       type="file"
                       accept=".txt,.md,text/plain"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const form = e.target.closest("form")!;
-                          (
-                            form.elements.namedItem(
-                              "text",
-                            ) as HTMLTextAreaElement
-                          ).value = await file.text();
-                          (
-                            form.elements.namedItem("name") as HTMLInputElement
-                          ).value = file.name;
-                        }
-                      }}
+                      disabled={readingFile || busy}
+                      onChange={(e) =>
+                        void readImportFile(e.currentTarget, "source")
+                      }
                     />
                   </label>
                   <label>
@@ -418,12 +492,69 @@ export default function Home() {
                       placeholder="Paste fictional program records, one fact per line…"
                     />
                   </label>
-                  <button className="primary" disabled={busy}>
-                    Extract candidate facts
+                  <button className="primary" disabled={busy || readingFile}>
+                    {readingFile
+                      ? "Reading source…"
+                      : "Extract candidate facts"}
                   </button>
                 </form>
               )}
-              {data.sources.map((src) => (
+              <div className="evidence-toolbar">
+                <label className="evidence-search">
+                  Search evidence
+                  <input
+                    type="search"
+                    value={evidenceSearch}
+                    onChange={(e) => setEvidenceSearch(e.target.value)}
+                    placeholder="Search excerpts or source names…"
+                  />
+                </label>
+                <div
+                  className="fact-filters"
+                  role="group"
+                  aria-label="Evidence status"
+                >
+                  {[
+                    ["all", "All facts"],
+                    ["approved", "Approved only"],
+                    ["pending", "Needs review"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      className={factFilter === value ? "selected" : ""}
+                      aria-pressed={factFilter === value}
+                      onClick={() => setFactFilter(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="period-hint">
+                {approvedForGrant} approved fact
+                {approvedForGrant === 1 ? "" : "s"} fall within {g.name}’s
+                reporting period. Sources outside it stay in your library for
+                other grants.
+              </p>
+              {!filteredSources.length && (
+                <div className="card empty-evidence">
+                  <h3>No matching evidence.</h3>
+                  <p>
+                    Try another search or status, or import a source for this
+                    grant.
+                  </p>
+                  <button
+                    className="textbutton"
+                    onClick={() => {
+                      setEvidenceSearch("");
+                      setFactFilter("all");
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+              {filteredSources.map((src) => (
                 <section className="card sourcecard" key={src.id}>
                   <div className="sourcehead">
                     <div className="docicon">▤</div>
@@ -435,69 +566,106 @@ export default function Home() {
                         candidate facts
                       </p>
                     </div>
-                    <span className="tag neutral">Text record</span>
+                    <span
+                      className={
+                        "tag " + (sourceFitsGrant(src) ? "good" : "warning")
+                      }
+                    >
+                      {sourceFitsGrant(src)
+                        ? "Within grant period"
+                        : "Outside this grant period"}
+                    </span>
                   </div>
-                  {data.facts
-                    .filter((f) => f.sourceId === src.id)
-                    .map((f) => (
-                      <div className="factrow" key={f.id}>
-                        <div>
-                          <div className="factmeta">
-                            <span
-                              className={
-                                "tag " + (f.approved ? "good" : "warning")
-                              }
-                            >
-                              {f.approved ? "✓ Approved" : "◷ Pending review"}
-                            </span>
-                            <small>{f.location}</small>
-                          </div>
-                          <p>{f.excerpt}</p>
-                          <code>{f.id.slice(0, 12)}</code>
-                        </div>
-                        <div className="factactions">
-                          <select
-                            aria-label={"Fact type " + f.id}
-                            value={f.kind}
-                            onChange={(e) =>
-                              act({
-                                action: "fact",
-                                id: f.id,
-                                kind: e.target.value,
-                                approved: false,
-                              })
+                  {src.visibleFacts.map((f) => (
+                    <div className="factrow" key={f.id}>
+                      <div>
+                        <div className="factmeta">
+                          <span
+                            className={
+                              "tag " + (f.approved ? "good" : "warning")
                             }
                           >
-                            <option value="achieved">Achieved outcome</option>
-                            <option value="goal">Future goal</option>
-                          </select>
-                          <button
-                            className={f.approved ? "textbutton" : "secondary"}
-                            disabled={busy}
-                            onClick={() =>
-                              act({
-                                action: "fact",
-                                id: f.id,
-                                approved: !f.approved,
-                              })
-                            }
-                          >
-                            {f.approved ? "Revoke approval" : "Approve fact"}
-                          </button>
+                            {f.approved ? "✓ Approved" : "◷ Pending review"}
+                          </span>
+                          <small>{f.location}</small>
                         </div>
+                        <p>{f.excerpt}</p>
+                        <code>{f.id.slice(0, 12)}</code>
                       </div>
-                    ))}
+                      <div className="factactions">
+                        <select
+                          aria-label={"Fact type " + f.id}
+                          value={f.kind}
+                          onChange={(e) =>
+                            act({
+                              action: "fact",
+                              id: f.id,
+                              kind: e.target.value,
+                              approved: false,
+                            })
+                          }
+                        >
+                          <option value="achieved">Achieved outcome</option>
+                          <option value="goal">Future goal</option>
+                        </select>
+                        <button
+                          className={f.approved ? "textbutton" : "secondary"}
+                          disabled={busy}
+                          onClick={() =>
+                            act({
+                              action: "fact",
+                              id: f.id,
+                              approved: !f.approved,
+                            })
+                          }
+                        >
+                          {f.approved ? "Revoke approval" : "Approve fact"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </section>
               ))}
             </>
+          )}
+          {tab === "evidence" && (
+            <div className="workflow-next">
+              <div>
+                <strong>Evidence reviewed?</strong>
+                <p>
+                  Prepare the answers for {g.name}, using only approved facts
+                  within its period.
+                </p>
+              </div>
+              <button
+                className="primary"
+                onClick={() => navigate("application")}
+              >
+                Continue to answers →
+              </button>
+            </div>
+          )}
+          {tab === "spending" && (
+            <div className="workflow-next">
+              <div>
+                <strong>Numbers reconciled?</strong>
+                <p>
+                  Review the application and financial report together before
+                  approving.
+                </p>
+              </div>
+              <button className="primary" onClick={() => navigate("review")}>
+                Continue to staff review →
+              </button>
+            </div>
           )}
           {tab === "application" && (
             <>
               <div className="stats">
                 <Stat
                   label="Approved evidence"
-                  value={String(approved)}
-                  detail="Staff-reviewed facts ready to use"
+                  value={String(approvedForGrant)}
+                  detail="Staff-reviewed facts within this grant period"
                 />
                 <Stat
                   label="Application answers"
@@ -575,6 +743,12 @@ export default function Home() {
                                 <div className="gap" key={j}>
                                   <strong>Evidence gap</strong>
                                   <p>{gap}</p>
+                                  <button
+                                    className="textbutton"
+                                    onClick={() => navigate("evidence")}
+                                  >
+                                    Review supporting records →
+                                  </button>
                                 </div>
                               ))}
                             </div>
@@ -761,15 +935,10 @@ export default function Home() {
                     aria-label="CSV file"
                     type="file"
                     accept=".csv,text/csv"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file)
-                        (
-                          e.target.form?.elements.namedItem(
-                            "csv",
-                          ) as HTMLTextAreaElement
-                        ).value = await file.text();
-                    }}
+                    disabled={readingFile || busy}
+                    onChange={(e) =>
+                      void readImportFile(e.currentTarget, "csv")
+                    }
                   />
                   <textarea
                     aria-label="CSV contents"
@@ -780,8 +949,8 @@ export default function Home() {
                       "id,date,payee,amount\nNEW1,2026-09-01,Family supplies,100.00"
                     }
                   />
-                  <button className="primary" disabled={busy}>
-                    Validate & import
+                  <button className="primary" disabled={busy || readingFile}>
+                    {readingFile ? "Reading CSV…" : "Validate & import"}
                   </button>
                 </form>
               )}
@@ -1075,6 +1244,26 @@ export default function Home() {
                         {errors.map((e, i) => (
                           <p key={i}>◷ {e}</p>
                         ))}
+                        <div className="blocker-actions">
+                          <button
+                            className="textbutton"
+                            onClick={() => navigate("application")}
+                          >
+                            Fix answers →
+                          </button>
+                          <button
+                            className="textbutton"
+                            onClick={() => navigate("evidence")}
+                          >
+                            Check evidence →
+                          </button>
+                          <button
+                            className="textbutton"
+                            onClick={() => navigate("spending")}
+                          >
+                            Check spending →
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="ready">
