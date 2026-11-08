@@ -1,5 +1,7 @@
 # Part 3 status and compatibility — November 7, 2026
 
+**Update — November 8:** The authorized live SDK check passed at 9:16 a.m. Eastern on revision `c8b7f18`, using `gpt-4.1-mini`. It returned two claims, zero gaps, and zero deterministic validation errors; the resulting draft passed the Part 2 approval seal check with a fixture answer for the second question. The generator's all-three-tools requirement also passed. See the [live receipt](qa/2026-11-08/live-agent-receipt.json). This verifies one real model generation and its engine compatibility; it does not claim broad model reliability or a live UI/API browser journey. The previous checks below are retained as the November 7 record.
+
 GitHub was checked after fetching the repository. Joe (`Joeplouis`) committed the Part 3 problem-first README, demo script, and run instructions in `8806a9e`. That commit is already an ancestor of `codex/part1-part2-integration`. His later `074e422` synthetic data pack is also included. No `part3-agent` branch, separate Part 3 PR, or repository fork was published at the time of this check. The existing AI/API implementation is already in the combined branch; no newer Joe-authored implementation was found.
 
 | Part 3 acceptance item | Evidence |

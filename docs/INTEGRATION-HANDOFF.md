@@ -27,9 +27,9 @@ To reproduce the browser run, install dependencies with `npm ci`, ensure Google 
 
 ## Remaining checks
 
-Part 3's README is already included. Its fixture/API compatibility and two additional browser checks are recorded in [the Part 3 integration status](PART3-INTEGRATION.md); live-generation acceptance remains unverified.
+Part 3's README is already included. Its fixture/API compatibility, two additional browser checks, and successful November 8 live SDK/engine check are recorded in [the Part 3 integration status](PART3-INTEGRATION.md).
 
-- Live OpenAI generation has not been exercised with an authorized API key; fixture mode is the verified path.
+- One authorized live OpenAI SDK generation passed on November 8, with two claims, zero gaps, and a successful engine approval seal. Broader model evaluations and a live UI/API browser journey remain untested.
 - Chromium screenshot inspection is complete at desktop, Pixel 7, and compact-phone sizes. See [visual QA](VISUAL-QA.md) for the mobile layout fix, screenshots, and seven passing browser checks. Physical-device and Safari checks remain outside this review.
 - The app still runs on loopback only. No public deployment, funder submission, or real nonprofit data is included.
 
@@ -37,7 +37,7 @@ Part 3's README is already included. Its fixture/API compatibility and two addit
 
 The dashboard now cancels a keyboard move when its handle loses focus, preserving the saved order and clearing the picked-up state. Its regression test failed before the fix and passes afterward. Mouse drop, touch events, keyboard placement/cancellation, saved order, reset, and unavailable-storage recovery remain covered by component tests.
 
-`npm test` now includes the three standalone Part 1 component checks (dashboard, dialog focus, and error/evidence recovery). On this revision, 30 engine/acceptance tests and all three component checks passed. The two server-dependent tests were then run separately against a fresh fictional production server on loopback port 4320, resetting between them; both passed without skips. Production build and typecheck also passed. The later [visual QA pass](VISUAL-QA.md) reran the combined browser workflow and inspected screenshots after the focus fix and mobile layout improvement. Live AI remains unverified.
+`npm test` now includes the three standalone Part 1 component checks (dashboard, dialog focus, and error/evidence recovery). On this revision, 30 engine/acceptance tests and all three component checks passed. The two server-dependent tests were then run separately against a fresh fictional production server on loopback port 4320, resetting between them; both passed without skips. Production build and typecheck also passed. The later [visual QA pass](VISUAL-QA.md) reran the combined browser workflow and inspected screenshots after the focus fix and mobile layout improvement. A subsequent single live SDK/engine check passed on November 8; see the Part 3 integration status.
 
 To rerun the combined UI/API checks, start a production server with an isolated `GRANTPROOF_DB`, then run these separately, resetting that same fictional database between runs:
 
