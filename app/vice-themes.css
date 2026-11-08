@@ -1,4 +1,4 @@
-/* Three original South Beach palettes. All decoration stays outside the data. */
+/* Three original Miami neighborhood palettes. */
 :root[data-theme="vice-nights"] {
   color-scheme: dark;
   --ink: #f1efff;
@@ -592,5 +592,116 @@ html[data-theme="classic"] .neighborhood-signature {
 @media (max-width: 600px) {
   .walkthrough-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.agent-activity {
+  margin: 0 22px 22px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--vice-raised, #f4f7f4);
+}
+.activity-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.activity-heading h4 {
+  margin: 5px 0 0;
+  font-size: 18px;
+  color: var(--ink);
+}
+.activity-meta,
+.activity-legacy,
+.activity-boundary {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.activity-legacy {
+  margin: 0 22px 20px;
+}
+.activity-events {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0;
+}
+.activity-events > li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.activity-events strong {
+  font-size: 14px;
+  color: var(--ink);
+}
+.activity-events p {
+  margin: 5px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.activity-marker {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--vice-success-bg, #e1f3e8);
+  color: var(--vice-success, #226348);
+  font-weight: 700;
+}
+.activity-marker.attention {
+  color: var(--vice-warning, #85511e);
+  background: var(--vice-warning-bg, #fff0d7);
+}
+.activity-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.activity-tool {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+}
+.activity-tool summary {
+  cursor: pointer;
+}
+.activity-tool code {
+  display: block;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.activity-boundary {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-bottom: 0;
+}
+.activity-pending {
+  margin: 0 22px 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--vice-raised, #f4f7f4);
+}
+.activity-pending p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .agent-activity {
+    margin: 0 12px 16px;
+    padding: 14px;
+  }
+  .activity-heading h4 {
+    font-size: 16px;
   }
 }

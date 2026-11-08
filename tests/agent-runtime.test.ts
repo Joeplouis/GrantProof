@@ -8,7 +8,16 @@ import {
   type ModelResponse,
 } from "@openai/agents";
 import { generate } from "../lib/agent";
-import { seed, validateDraft, fixtureDraft, approve, hash } from "../lib/store";
+import {
+  seed,
+  validateDraft,
+  fixtureDraft,
+  approve,
+  hash,
+  connect,
+  save,
+  read,
+} from "../lib/store";
 
 // Real SDK orchestration and real application tools, scripted model output only.
 // This file runs in its own test process. Any attempted network call fails.
@@ -97,6 +106,14 @@ test("real SDK executes all three application tools and validates their structur
   assert.equal(contents(names[2]).report.balance, 3380000);
   assert.deepEqual(draft.claims, expected.claims);
   assert.deepEqual(validateDraft(s, draft), []);
+  assert.equal(draft.activity?.engine, "live");
+  assert.deepEqual(
+    draft.activity?.events.flatMap((event) => (event.tool ? [event.tool] : [])),
+    names,
+  );
+  assert.deepEqual(draft.activity?.events[0].factIds, ["f1", "f2"]);
+  assert.match(draft.activity!.events[2].detail, /\$16,200.00 spent/);
+  assert.equal(draft.activity?.events.at(-1)?.status, "complete");
   assert.equal(
     hash(s),
     before,
@@ -145,9 +162,29 @@ test("hallucinated and unapproved model claims cannot cross the engine approval 
   const draft = await generate(s, q, true);
   assert.ok(draft.gaps.length > 0);
   assert.ok(validateDraft(s, draft).length > 0);
+  assert.equal(draft.activity?.events.at(-1)?.status, "attention");
   s.drafts = [draft, fixtureDraft(s, s.questions[1])];
   assert.throws(() => approve(s, "g1", "Fictional offline reviewer"));
   assert.equal(s.approvals.length, 0);
+});
+
+test("fixture activity is labeled honestly and survives database persistence", async () => {
+  const s = seed();
+  const draft = await generate(s, s.questions[0], false);
+  assert.equal(draft.activity?.engine, "fixture");
+  assert.ok(draft.activity?.events.every((event) => !event.tool));
+  assert.match(
+    draft.activity!.events[0].detail,
+    /No model or agent tools were called/,
+  );
+  s.drafts = [draft];
+  const db = connect(":memory:");
+  try {
+    save(db, s);
+    assert.deepEqual(read(db).drafts[0].activity, draft.activity);
+  } finally {
+    db.close();
+  }
 });
 
 test("malformed model output fails SDK structured-output parsing", async () => {

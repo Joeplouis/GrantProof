@@ -26,7 +26,7 @@ export default defineConfig({
     },
     {
       name: "compact-phone-chrome",
-      testMatch: /(visual-review|theme-variations)\.spec\.ts/,
+      testMatch: /(visual-review|theme-variations|agent-activity)\.spec\.ts/,
       use: {
         ...devices["Pixel 7"],
         viewport: { width: 360, height: 800 },
