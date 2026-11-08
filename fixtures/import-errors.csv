@@ -1,0 +1,5 @@
+id,date,payee,amount
+BAD1,2026-02-30,Invalid date,20.00
+BAD2,2026-02-01,Negative,-10.00
+NEW1,2026-09-01,"Family supplies, Miami",100.00
+NEW1,2026-09-01,"Family supplies, Miami",100.00

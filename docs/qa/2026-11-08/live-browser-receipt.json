@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "verifiedAt": "2026-11-08T14:21:21.411Z",
+  "testedRevision": "c9a797a2c5a2a63674adb26535a15b385de7b7cb",
+  "model": "gpt-4.1-mini",
+  "liveGenerations": 2,
+  "questionIds": [
+    "q1",
+    "q2"
+  ],
+  "claimCounts": [
+    3,
+    1
+  ],
+  "validationErrors": [],
+  "spentCents": 1620101,
+  "balanceCents": 3379899,
+  "approvalHash": "1cb3b2d173f40e694270785b3e30512cdb48d0ef271f890ea17847ecb47ff772",
+  "jsonDownload": true,
+  "htmlDownload": true,
+  "reloadPersistence": true,
+  "unsupportedEditBlocksExport": true,
+  "priorSnapshotUnchanged": true,
+  "clientErrors": 0,
+  "viewports": [
+    1280,
+    360
+  ],
+  "data": "fictional isolated SQLite workspace",
+  "testSourceSha256": "c6145a38a501ad3f19bb2b8145ded971a54589df9ee7c22582c1ca5bb3c9e222",
+  "configSourceSha256": "b3c9bc96ca4887df4846c1ff689978ab616498fb2dd949df818e73ccbb9f22cf"
+}

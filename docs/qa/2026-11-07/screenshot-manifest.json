@@ -1,0 +1,303 @@
+{
+  "date": "2026-11-07",
+  "timezone": "America/New_York",
+  "screenshots": [
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/01-dashboard.png",
+      "pixels": [
+        1280,
+        1227
+      ],
+      "sha256": "a54c739dae27eca5a64b30b792ba70ea9e629142820c4288538f1a58db1092ae"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/02-application.png",
+      "pixels": [
+        1280,
+        1284
+      ],
+      "sha256": "7f36259f661becb65470a53ce7c3a4bc908d1415faaeb2dc1f66db8eab7abe02"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/02-evidence.png",
+      "pixels": [
+        1280,
+        1517
+      ],
+      "sha256": "061ee729a747ae48b38ddbd4ae7c71b40d3706fac84ee326ffba54662948e6b3"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/02-review.png",
+      "pixels": [
+        1280,
+        1062
+      ],
+      "sha256": "96ef15c36a097e46394d3bf1e0f4188709819df9200d0586a55db31189893530"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/02-spending.png",
+      "pixels": [
+        1280,
+        1531
+      ],
+      "sha256": "a0f295bb4c32ec8f88107df19078813136a38a2f3aed1ec5c7413e30ebc324b4"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/03-generated-application.png",
+      "pixels": [
+        1280,
+        1284
+      ],
+      "sha256": "9e7a63b5361fe004f4e65c9718b3f8bb4453e4895341a6b4b5fa1520cbe512e4"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/04-citation-dialog.png",
+      "pixels": [
+        1280,
+        720
+      ],
+      "sha256": "c01adc9997e3202665dd5ded24a38919eece04b6628fcea80720af228928021c"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/05-answer-editor.png",
+      "pixels": [
+        1280,
+        720
+      ],
+      "sha256": "c277c21c24cf4afd4ce4c98d0d486aed944fa4140511dd173404531107e169f0"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/06-approved-review.png",
+      "pixels": [
+        1280,
+        1254
+      ],
+      "sha256": "0f5d8d720d9488edc77502a1613ab39e229c85c86b995fc78ac306748faf163d"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/07-source-import.png",
+      "pixels": [
+        1280,
+        2165
+      ],
+      "sha256": "b38ebf008af8cc8ca67eb398bae29921ca43416ab431aeeef4ac74356faa8fc4"
+    },
+    {
+      "project": "desktop-chrome",
+      "file": "screens/desktop-chrome/08-csv-import.png",
+      "pixels": [
+        1280,
+        1943
+      ],
+      "sha256": "406000b39883a19361e933c0cc96185737e912261b9fa9ea7982505549243642"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/01-dashboard.png",
+      "pixels": [
+        412,
+        1925
+      ],
+      "sha256": "11452c94b49e142b6f906a27f48d552dd2177cc52f2d7ff28a489445e48839c2"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/02-application.png",
+      "pixels": [
+        412,
+        1391
+      ],
+      "sha256": "b54fc2ca59946427129b56a00cd79e2e76f5f502f8d17d545896295f8774e2d4"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/02-evidence.png",
+      "pixels": [
+        412,
+        1730
+      ],
+      "sha256": "457b0c5f9a22360e26ccb2cdb284c99b4ff95c32bff44307bafd305f74d4f2ed"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/02-review.png",
+      "pixels": [
+        412,
+        1816
+      ],
+      "sha256": "bb1237086a2bd323fe5ebc2279502d73f3a69975b929734c35b46213bb3ed239"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/02-spending.png",
+      "pixels": [
+        412,
+        1880
+      ],
+      "sha256": "b20896e9bcf9e425e8cc34b2b2cdd29c154a73b4223178c0ae792526c3a8c4ff"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/03-generated-application.png",
+      "pixels": [
+        412,
+        1472
+      ],
+      "sha256": "0bbd43c427762e3a1d4191307328c23bb168965f133c0c0d1369f31b0b620b28"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/04-citation-dialog.png",
+      "pixels": [
+        412,
+        839
+      ],
+      "sha256": "be60994b8ec972f9ddd545418ff9a834b3a6d25cc169c4c9a8446bda7d72339c"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/05-answer-editor.png",
+      "pixels": [
+        412,
+        839
+      ],
+      "sha256": "8898e85c64562d3a4316a7f024938b1dfc607cbfadc3eae95d5bb4f038c9b4c6"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/06-approved-review.png",
+      "pixels": [
+        412,
+        1985
+      ],
+      "sha256": "135dcc5f9923b6a578db4304d9b94f198c9de35dee33878f61e99b67ad9f8259"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/07-source-import.png",
+      "pixels": [
+        412,
+        2479
+      ],
+      "sha256": "36658bc60bc093ee3c3344ae224d3b3035ce252e8500d15dd88d84d6ea0c84d0"
+    },
+    {
+      "project": "mobile-chrome",
+      "file": "screens/mobile-chrome/08-csv-import.png",
+      "pixels": [
+        412,
+        2329
+      ],
+      "sha256": "ee3804fff26cc201e9b190531d41ba235d09743fa328ea20893c1aedad6da923"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/01-dashboard.png",
+      "pixels": [
+        360,
+        2005
+      ],
+      "sha256": "b2ba426075f684cd3bcc4c7095600f7f8b89b9351492ee48aa2dcdd911595bad"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/02-application.png",
+      "pixels": [
+        360,
+        1490
+      ],
+      "sha256": "40f57a5d15741009afb6ffdbd33897090cc3ebb1f83ff6af8ce884731a186b1b"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/02-evidence.png",
+      "pixels": [
+        360,
+        1825
+      ],
+      "sha256": "902b7b85c33446e7b77175075a6e5e78c70b588bd6922755fdfc2dc50ef0ce5c"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/02-review.png",
+      "pixels": [
+        360,
+        1902
+      ],
+      "sha256": "5f4bc6719b3679e917e0573524c92800df201a357081531d436bbd47a936eee5"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/02-spending.png",
+      "pixels": [
+        360,
+        1962
+      ],
+      "sha256": "6d5b274e203a727c2d9c928de080c7eb0dab2ed389a4a296b67e9b9aa3c74764"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/03-generated-application.png",
+      "pixels": [
+        360,
+        1617
+      ],
+      "sha256": "f468da51f5d003330229486665bae6c3e9c15bfd2710113a365db6c11720c1f9"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/04-citation-dialog.png",
+      "pixels": [
+        360,
+        800
+      ],
+      "sha256": "c89b4b47ae84647bee1e8100c927ac7c3fed8724efccc779e9bac32289342d20"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/05-answer-editor.png",
+      "pixels": [
+        360,
+        800
+      ],
+      "sha256": "3248e4485794f8aec970d909b0ff713363010cde74018de978085151e83d5241"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/06-approved-review.png",
+      "pixels": [
+        360,
+        2111
+      ],
+      "sha256": "ea25683d485feb81d0be07ae1ba5eaf407eb6b999cdc111b094ca15d84ecaf16"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/07-source-import.png",
+      "pixels": [
+        360,
+        2607
+      ],
+      "sha256": "7a89e5b8befcbc4bbcbc23c90cab10ec58c20b3ffc87ef7c40d432c9c4d7e826"
+    },
+    {
+      "project": "compact-phone-chrome",
+      "file": "screens/compact-phone-chrome/08-csv-import.png",
+      "pixels": [
+        360,
+        2448
+      ],
+      "sha256": "1ee6ea1c92bd019746d553bd38a10df6c8779e98516eb9ee76793a9794ad3a77"
+    }
+  ]
+}

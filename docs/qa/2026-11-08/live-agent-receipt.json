@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "verifiedAt": "2026-11-08T14:16:06.955Z",
+  "testedRevision": "c8b7f181af483af72a66ebe79443e6c41adcd8fb",
+  "model": "gpt-4.1-mini",
+  "mode": "Live OpenAI Agents SDK",
+  "questionId": "q1",
+  "claimCount": 2,
+  "gapCount": 0,
+  "validationErrors": [],
+  "approvalHash": "86ac25e04422f3c8794d23b3ea37f88f22fa2be86468fbbf50644c3b5dadf8c7",
+  "data": "fictional in-memory seed only",
+  "persistence": "none"
+}
