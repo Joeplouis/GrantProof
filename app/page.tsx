@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Dashboard from "@/components/Dashboard";
+import CrmWorkspace from "@/components/CrmWorkspace";
 import Modal from "@/components/Modal";
 import ThemePicker, {
   ViceScene,
@@ -43,6 +44,7 @@ const tabs = [
   ["application", "02", "Application workspace", "✎"],
   ["spending", "03", "Grant spending", "▥"],
   ["review", "04", "Review & export", "✓"],
+  ["crm", "05", "Relationships & CRM", "♧"],
 ];
 export default function Home() {
   const [data, setData] = useState<Workspace>();
@@ -253,6 +255,10 @@ export default function Home() {
 
   const current = data.currentApprovals.find((a) => a.grantId === grant);
   const errors = data.reviewErrors[grant];
+  const answersReady = questions.filter((question) => {
+    const draft = data.drafts.find((draft) => draft.questionId === question.id);
+    return draft && !(data.draftErrors[draft.id] || draft.gaps).length;
+  }).length;
   return (
     <div className="shell">
       <aside>
@@ -284,7 +290,7 @@ export default function Home() {
               className={tab === key ? "active" : ""}
             >
               <span className="navicon">{icon}</span>
-              {label}
+              <span className="nav-title">{label}</span>
               <small>{num}</small>
             </button>
           ))}
@@ -331,61 +337,67 @@ export default function Home() {
               <h1>
                 {tab === "dashboard"
                   ? "A clear view of your grant."
-                  : tab === "application"
-                    ? "Your impact, backed by evidence."
-                    : tab === "evidence"
-                      ? "Good answers start here."
-                      : tab === "spending"
-                        ? "Every dollar, accounted for."
-                        : "Ready for a human sign-off."}
+                  : tab === "crm"
+                    ? "Good relationships. Greater impact."
+                    : tab === "application"
+                      ? "Your impact, backed by evidence."
+                      : tab === "evidence"
+                        ? "Good answers start here."
+                        : tab === "spending"
+                          ? "Every dollar, accounted for."
+                          : "Ready for a human sign-off."}
               </h1>
               <p className="subtitle">
                 {tab === "dashboard"
                   ? "Arrange your workspace around what needs attention today."
-                  : tab === "application"
-                    ? "Turn approved facts into funder-ready answers. Keep the source close."
-                    : tab === "evidence"
-                      ? "One trusted home for the facts behind your applications."
-                      : tab === "spending"
-                        ? "Keep QuickBooks. Reconcile your CSV against the funder’s rules."
-                        : "Review the application and financial report as one versioned package."}
+                  : tab === "crm"
+                    ? "Funders, donors, and follow-ups in one place."
+                    : tab === "application"
+                      ? "Turn approved facts into funder-ready answers. Keep the source close."
+                      : tab === "evidence"
+                        ? "One trusted home for the facts behind your applications."
+                        : tab === "spending"
+                          ? "Keep QuickBooks. Reconcile your CSV against the funder’s rules."
+                          : "Review the application and financial report as one versioned package."}
               </p>
             </div>
             <span className="privacy">♧ &nbsp; Local-first workspace</span>
           </div>
-          <div className="grantbar">
-            <div className="granticon">▧</div>
-            <div>
-              <span className="small-label">CURRENT GRANT</span>
-              <select
-                aria-label="Current grant"
-                value={grant}
-                onChange={(e) => {
-                  setGrant(e.target.value);
-                  setShowImport(false);
-                  setEvidence(undefined);
-                  setEdit(undefined);
-                  setNotice("");
-                }}
-                disabled={busy}
-              >
-                {data.grants.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
+          {tab !== "crm" && (
+            <div className="grantbar">
+              <div className="granticon">▧</div>
+              <div>
+                <span className="small-label">CURRENT GRANT</span>
+                <select
+                  aria-label="Current grant"
+                  value={grant}
+                  onChange={(e) => {
+                    setGrant(e.target.value);
+                    setShowImport(false);
+                    setEvidence(undefined);
+                    setEdit(undefined);
+                    setNotice("");
+                  }}
+                  disabled={busy}
+                >
+                  {data.grants.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grant-funder">
+                {g.funder}
+                <small>
+                  {g.start} → {g.end}
+                </small>
+              </div>
+              <span className="tag neutral">
+                {current ? "Approved snapshot" : "In preparation"}
+              </span>
             </div>
-            <div className="grant-funder">
-              {g.funder}
-              <small>
-                {g.start} → {g.end}
-              </small>
-            </div>
-            <span className="tag neutral">
-              {current ? "Approved snapshot" : "In preparation"}
-            </span>
-          </div>
+          )}
           {notice && (
             <div
               className={"notice" + (noticeError ? " notice-error" : "")}
@@ -400,16 +412,12 @@ export default function Home() {
               </button>
             </div>
           )}
+          {tab === "crm" && <CrmWorkspace />}
           {tab === "dashboard" && (
             <Dashboard
               approvedFacts={approvedForGrant}
               pendingFacts={grantFacts.length - approvedForGrant}
-              answersReady={
-                questions.filter((q) => {
-                  const d = data.drafts.find((d) => d.questionId === q.id);
-                  return d && !(data.draftErrors[d.id] || d.gaps).length;
-                }).length
-              }
+              answersReady={answersReady}
               questionCount={questions.length}
               spending={{ ...report, end: g.end }}
               approved={!!current}
@@ -1165,6 +1173,36 @@ export default function Home() {
           )}
           {tab === "review" && (
             <>
+              <section
+                className="review-summary sprig-only"
+                aria-label="Review readiness summary"
+              >
+                <div className="review-summary-intro">
+                  <span className="small-label">YOUR REPORT, AT A GLANCE</span>
+                  <strong>
+                    {current
+                      ? "Approved and ready to download"
+                      : errors.length
+                        ? "Let’s get this ready for review"
+                        : "Ready for your final review"}
+                  </strong>
+                </div>
+                <div>
+                  <strong>{approvedForGrant}</strong>
+                  <span>Approved facts in period</span>
+                </div>
+                <div>
+                  <strong>
+                    {answersReady}
+                    <small> / {questions.length}</small>
+                  </strong>
+                  <span>Answers ready</span>
+                </div>
+                <div>
+                  <strong>{errors.length}</strong>
+                  <span>Items to resolve</span>
+                </div>
+              </section>
               <div className="reviewlayout">
                 <div>
                   <section className="card reviewcard">

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 
 const themes = [
+  ["sprig", "Sprig"],
   ["vice-nights", "Wynwood"],
   ["ocean-drive", "South Beach"],
   ["sunset-strip", "Little Havana"],
@@ -10,7 +11,7 @@ const themes = [
 const storageKey = "grantproof.theme.v1";
 
 export default function ThemePicker() {
-  const [theme, setTheme] = useState("vice-nights");
+  const [theme, setTheme] = useState("sprig");
   const [notice, setNotice] = useState("");
   useEffect(() => {
     try {

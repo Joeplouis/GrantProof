@@ -1,0 +1,226 @@
+.crm-workspace {
+  min-width: 0;
+}
+.crm-intro {
+  display: flex;
+  gap: 32px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px;
+}
+.crm-intro h2 {
+  font-size: 30px;
+  letter-spacing: -1px;
+  margin: 12px 0;
+}
+.crm-intro p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+  max-width: 650px;
+}
+.crm-provider {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  border-left: 1px solid var(--border);
+  padding-left: 28px;
+}
+.crm-provider strong {
+  font-size: 27px;
+  letter-spacing: -0.8px;
+}
+.crm-provider > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.crm-areas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.crm-area {
+  padding: 26px;
+  min-width: 0;
+}
+.crm-area-number {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+.crm-area h3 {
+  font-size: 21px;
+  letter-spacing: -0.6px;
+  margin-bottom: 14px;
+}
+.crm-area p,
+.crm-area li {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.crm-area ul {
+  padding-left: 18px;
+  margin: 20px 0 26px;
+}
+.crm-area li + li {
+  margin-top: 8px;
+}
+.crm-stage-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.crm-stage-list span {
+  font-size: 10px;
+  border: 1px solid var(--border);
+  padding: 7px 9px;
+  border-radius: 100px;
+}
+.crm-area small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+  display: block;
+}
+.crm-access-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.crm-access {
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+}
+.crm-access h3 {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+.crm-access p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.crm-access a {
+  text-decoration: none;
+  font-size: 12px;
+}
+.crm-not-connected {
+  color: var(--muted);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  width: 100%;
+}
+.crm-trust-note {
+  border-left: 3px solid var(--green);
+  padding: 4px 20px;
+  margin: 10px 0 28px;
+}
+.crm-trust-note strong {
+  font-size: 16px;
+}
+.crm-trust-note p {
+  color: var(--muted);
+  line-height: 1.8;
+  margin-top: 8px;
+  font-size: 13px;
+}
+.crm-setup {
+  padding: 24px 28px;
+}
+.crm-setup summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+}
+.crm-setup ol {
+  padding-left: 22px;
+  margin: 20px 0;
+}
+.crm-setup li,
+.crm-setup p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.crm-setup li + li {
+  margin-top: 10px;
+}
+html[data-theme="sprig"] .crm-intro {
+  background: #064b40;
+  color: #fbfdfc;
+  border: 0;
+}
+html[data-theme="sprig"] .crm-intro p,
+html[data-theme="sprig"] .crm-intro .small-label,
+html[data-theme="sprig"] .crm-provider > span {
+  color: #c3dcd3;
+}
+html[data-theme="sprig"] .crm-intro .tag {
+  background: #55e6ad;
+  color: #064b40;
+}
+html[data-theme="sprig"] .crm-provider {
+  border-color: #ffffff30;
+}
+html[data-theme="sprig"] .crm-area-number {
+  color: #176d53;
+}
+html[data-theme="sprig"] .crm-stage-list span {
+  background: #edf8f3;
+  color: #145342;
+  border-color: #d9ebe2;
+}
+@media (max-width: 1150px) {
+  .crm-areas {
+    grid-template-columns: 1fr;
+  }
+  .crm-area-number {
+    margin-bottom: 14px;
+  }
+  .crm-area ul {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .crm-area li + li {
+    margin-top: 0;
+  }
+  .crm-intro {
+    align-items: flex-start;
+  }
+}
+@media (max-width: 700px) {
+  .crm-intro {
+    flex-direction: column;
+    padding: 24px;
+    gap: 24px;
+  }
+  .crm-provider {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    padding: 20px 0 0;
+    width: 100%;
+  }
+  .crm-intro h2 {
+    font-size: 27px;
+  }
+  .crm-access-grid {
+    grid-template-columns: 1fr;
+  }
+  .crm-area ul {
+    display: block;
+  }
+  .crm-area li + li {
+    margin-top: 8px;
+  }
+}

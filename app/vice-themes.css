@@ -117,18 +117,38 @@
 .vice-scene {
   display: none;
 }
-html:not([data-theme="classic"]) body {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  body {
   background-color: var(--paper);
   background-image: var(--vice-page);
 }
-html:not([data-theme="classic"]) aside {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  aside {
   background: var(--vice-sidebar);
   box-shadow: inset -1px 0 var(--vice-accent);
 }
-html:not([data-theme="classic"]) header {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  header {
   background: var(--vice-surface);
 }
-html:not([data-theme="classic"]) .page-top {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .page-top {
   position: relative;
   isolation: isolate;
   min-height: 188px;
@@ -139,16 +159,33 @@ html:not([data-theme="classic"]) .page-top {
   background: var(--vice-hero);
   overflow: hidden;
 }
-html:not([data-theme="classic"]) .page-top > div:first-of-type {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .page-top
+  > div:first-of-type {
   max-width: 72%;
   z-index: 1;
 }
-html:not([data-theme="classic"]) .page-top h1 {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .page-top
+  h1 {
   font-weight: 850;
   font-style: italic;
   letter-spacing: -1.1px;
 }
-html:not([data-theme="classic"]) .vice-scene {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .vice-scene {
   display: block;
   position: absolute;
   right: 5px;
@@ -157,16 +194,29 @@ html:not([data-theme="classic"]) .vice-scene {
   height: 165px;
   z-index: -1;
 }
-html:not([data-theme="classic"]) .privacy {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .privacy {
   display: none;
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(.card, .grantbar, .stats, .modal, .importform) {
   background: var(--vice-surface);
   border-color: var(--border);
   box-shadow: 0 5px 24px #0814240a;
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(
     .sourcehead,
     .factrow,
@@ -183,7 +233,11 @@ html:not([data-theme="classic"])
   ) {
   border-color: var(--border);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(
     .emptyanswer,
     .guidecard,
@@ -195,13 +249,22 @@ html:not([data-theme="classic"])
   background: var(--vice-raised);
   border-color: var(--border);
 }
-html:not([data-theme="classic"]) :is(.primary, .exportlink.primary) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(.primary, .exportlink.primary) {
   background: var(--vice-primary);
   color: var(--vice-primary-ink);
   border-color: var(--vice-primary);
   font-weight: 700;
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(
     .secondary,
     .panel-move,
@@ -214,16 +277,30 @@ html:not([data-theme="classic"])
   color: var(--vice-accent);
   border-color: var(--border);
 }
-html:not([data-theme="classic"]) :is(input, textarea, select) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(input, textarea, select) {
   background-color: var(--vice-surface);
   color: var(--ink);
   border-color: var(--border);
 }
-html:not([data-theme="classic"]) :is(input, textarea)::placeholder {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(input, textarea)::placeholder {
   color: var(--muted);
   opacity: 0.85;
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(
     .textbutton,
     .evidencecheck,
@@ -235,80 +312,173 @@ html:not([data-theme="classic"])
   ) {
   color: var(--vice-accent);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(.panel-icon, .citation, .beta, .org-icon, .profile > span:first-child) {
   background: var(--vice-raised);
 }
-html:not([data-theme="classic"]) .brandmark {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .brandmark {
   background: var(--vice-primary);
   color: var(--vice-primary-ink);
   box-shadow: 3px 3px 0 var(--vice-accent);
 }
-html:not([data-theme="classic"]) .brandmark > span {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .brandmark
+  > span {
   background: var(--vice-accent);
   color: var(--vice-sidebar);
   border-color: var(--vice-sidebar);
 }
-html:not([data-theme="classic"]) .brand {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .brand {
   letter-spacing: -1.1px;
 }
-html:not([data-theme="classic"]) nav button {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  nav
+  button {
   color: var(--muted);
 }
-html:not([data-theme="classic"]) nav button.active {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  nav
+  button.active {
   background: var(--vice-raised);
   color: var(--vice-accent);
   box-shadow: inset 3px 0 var(--vice-pink);
 }
-html:not([data-theme="classic"]) .dashboard-panel {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .dashboard-panel {
   border-top: 2px solid var(--vice-accent);
 }
-html:not([data-theme="classic"]) .dashboard-panel:nth-child(even) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .dashboard-panel:nth-child(even) {
   border-top-color: var(--vice-pink);
 }
-html:not([data-theme="classic"]) .dashboard-panel.drop-target {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .dashboard-panel.drop-target {
   border-color: var(--vice-pink);
   box-shadow: 0 0 0 3px var(--border);
 }
-html:not([data-theme="classic"]) .drag-handle[aria-pressed="true"] {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .drag-handle[aria-pressed="true"] {
   border-color: var(--vice-pink);
   color: var(--vice-pink);
   background: var(--vice-raised);
 }
-html:not([data-theme="classic"]) :is(.progress, .budget-progress) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(.progress, .budget-progress) {
   background: var(--vice-raised);
 }
-html:not([data-theme="classic"]) :is(.progress span, .budget-progress span) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(.progress span, .budget-progress span) {
   background: var(--vice-accent);
 }
-html:not([data-theme="classic"]) :is(thead, tfoot) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(thead, tfoot) {
   background: var(--vice-raised);
 }
-html:not([data-theme="classic"]) :is(th, td) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(th, td) {
   border-color: var(--border);
 }
-html:not([data-theme="classic"]) :is(.tag.neutral, .demo-pill) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(.tag.neutral, .demo-pill) {
   color: var(--muted);
   background: var(--vice-raised);
   border-color: var(--border);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(.tag.good, .ready, .notice:not(.notice-error)) {
   color: var(--vice-success);
   background: var(--vice-success-bg);
   border-color: var(--border);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(.tag.warning, .reviewblockers, .gap, .notice-error) {
   color: var(--vice-warning);
   background: var(--vice-warning-bg);
   border-color: var(--border);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(.gap p, .gap strong, .reviewblockers p, .reviewblockers .textbutton) {
   color: inherit;
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(
     .subtitle,
     .breadcrumb,
@@ -348,17 +518,40 @@ html:not([data-theme="classic"])
   ) {
   color: var(--muted);
 }
-html:not([data-theme="classic"]) .filtertabs button {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .filtertabs
+  button {
   color: var(--muted);
 }
-html:not([data-theme="classic"]) .filtertabs button[aria-pressed="true"] {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .filtertabs
+  button[aria-pressed="true"] {
   color: var(--vice-accent);
   background: var(--vice-surface);
 }
-html:not([data-theme="classic"]) .modalback {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .modalback {
   background: #0b1027b8;
 }
-html:not([data-theme="classic"]) .modal blockquote {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .modal
+  blockquote {
   border-color: var(--vice-accent);
 }
 html[data-theme="vice-nights"] h1 {
@@ -414,18 +607,40 @@ html[data-theme="sunset-strip"] .dashboard-panel {
     padding: 4px 6px;
     white-space: nowrap;
   }
-  html:not([data-theme="classic"]) .page-top {
+  html:is(
+      [data-theme="vice-nights"],
+      [data-theme="ocean-drive"],
+      [data-theme="sunset-strip"]
+    )
+    .page-top {
     padding: 22px 19px 110px;
     min-height: 260px;
   }
-  html:not([data-theme="classic"]) .page-top > div:first-of-type {
+  html:is(
+      [data-theme="vice-nights"],
+      [data-theme="ocean-drive"],
+      [data-theme="sunset-strip"]
+    )
+    .page-top
+    > div:first-of-type {
     max-width: 100%;
   }
-  html:not([data-theme="classic"]) .page-top h1 {
+  html:is(
+      [data-theme="vice-nights"],
+      [data-theme="ocean-drive"],
+      [data-theme="sunset-strip"]
+    )
+    .page-top
+    h1 {
     font-size: 25px;
     line-height: 1.3;
   }
-  html:not([data-theme="classic"]) .vice-scene {
+  html:is(
+      [data-theme="vice-nights"],
+      [data-theme="ocean-drive"],
+      [data-theme="sunset-strip"]
+    )
+    .vice-scene {
     width: 160px;
     height: 110px;
     right: 5px;
@@ -433,26 +648,56 @@ html[data-theme="sunset-strip"] .dashboard-panel {
   }
 }
 /* Readable data and utility surfaces across all three palettes. */
-html:not([data-theme="classic"]) th {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  th {
   color: var(--muted);
   background: var(--vice-raised);
 }
-html:not([data-theme="classic"]) td {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  td {
   color: var(--ink);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(.granticon, .txicon, .circleicon, .fact-filters, pre) {
   color: var(--vice-accent);
   background: var(--vice-raised);
 }
-html:not([data-theme="classic"]) .fact-filters button {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .fact-filters
+  button {
   color: var(--muted);
 }
-html:not([data-theme="classic"]) .fact-filters button.selected {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .fact-filters
+  button.selected {
   color: var(--vice-accent);
   background: var(--vice-surface);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(
     .grant-funder,
     .grant-funder small,
@@ -465,22 +710,54 @@ html:not([data-theme="classic"])
   ) {
   color: var(--muted);
 }
-html:not([data-theme="classic"]) .workflow-next strong {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .workflow-next
+  strong {
   color: var(--ink);
 }
-html:not([data-theme="classic"]) .budget-track {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .budget-track {
   background: var(--vice-raised);
 }
-html:not([data-theme="classic"]) .budget-track > span {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .budget-track
+  > span {
   background: var(--vice-accent);
 }
-html:not([data-theme="classic"]) :is(.demo-pill i, .sidecard > div i) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(.demo-pill i, .sidecard > div i) {
   background: var(--vice-accent);
 }
-html:not([data-theme="classic"]) input {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  input {
   accent-color: var(--vice-pink);
 }
-html:not([data-theme="classic"]) :focus-visible {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :focus-visible {
   outline-color: var(--vice-accent);
 }
 .vice-grid {
@@ -489,14 +766,28 @@ html:not([data-theme="classic"]) :focus-visible {
 html[data-theme="vice-nights"] .vice-grid {
   display: block;
 }
-html:not([data-theme="classic"]) .dashboard-panel:hover {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .dashboard-panel:hover {
   box-shadow: 0 6px 24px #08142418;
   border-right-color: var(--vice-accent);
 }
-html:not([data-theme="classic"]) .primary:hover:not(:disabled) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  .primary:hover:not(:disabled) {
   filter: brightness(1.06);
 }
-html:not([data-theme="classic"])
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
   :is(
     .modecard p,
     .modecard > small,
@@ -507,7 +798,12 @@ html:not([data-theme="classic"])
   ) {
   color: var(--muted);
 }
-html:not([data-theme="classic"]) :is(.guideitem > span, .emptyanswer > span) {
+html:is(
+    [data-theme="vice-nights"],
+    [data-theme="ocean-drive"],
+    [data-theme="sunset-strip"]
+  )
+  :is(.guideitem > span, .emptyanswer > span) {
   color: var(--vice-accent);
 }
 /* Original illustrations inspired by real Miami neighborhoods. */
