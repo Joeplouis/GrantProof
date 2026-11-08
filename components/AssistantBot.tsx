@@ -12,7 +12,7 @@ const CHIPS = [
 ];
 
 const GREETING =
-  "Hi — I'm the GrantProof assistant. I answer from this workspace's own database: grants, spending, approved evidence, drafts and approvals for Tidepath Family Alliance. Ask me anything about it.";
+  "Hi — I'm Maya, the GrantProof assistant. I answer from this workspace's own database: grants, spending, approved evidence, drafts and approvals for Tidepath Family Alliance. Ask me anything about it.";
 
 export default function AssistantBot() {
   const [open, setOpen] = useState(false);
@@ -78,7 +78,7 @@ export default function AssistantBot() {
               <img
                 className="gp-bot-avatar"
                 src="/assistant-face.jpg"
-                alt="Joseph, founder of BookAI Studio"
+                alt="Maya, the GrantProof assistant"
               />
               <div>
                 <strong>GrantProof Assistant</strong>
@@ -146,7 +146,7 @@ export default function AssistantBot() {
         <img
           className="gp-bot-face"
           src="/assistant-face.jpg"
-          alt="Joseph, founder of BookAI Studio"
+          alt="Maya, the GrantProof assistant"
         />
         Ask GrantProof <span aria-hidden="true">👋</span>
       </button>
