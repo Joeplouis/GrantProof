@@ -18,6 +18,11 @@ import {
 } from "@/lib/store";
 import { generate } from "@/lib/agent";
 import { prepareGrant, preparePortfolio } from "@/lib/workflow";
+import {
+  schedulerStatus,
+  setSchedule,
+  retryScheduledJob,
+} from "@/lib/scheduler";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function output() {
@@ -26,6 +31,7 @@ function output() {
     const s = read(db);
     return {
       ...s,
+      scheduler: schedulerStatus(db),
       reports: s.grants.map((g) => ({ grantId: g.id, ...spending(s, g.id) })),
       currentApprovals: s.grants
         .map((g) => currentApproval(s, g.id))
@@ -62,6 +68,30 @@ export async function POST(req: NextRequest) {
     const initialHash = hash(s);
     let message = "Changes saved.";
     switch (b.action) {
+      case "schedule": {
+        if (typeof b.enabled !== "boolean" || typeof b.live !== "boolean")
+          throw Error("Choose a valid schedule mode.");
+        if (b.live && !process.env.OPENAI_API_KEY)
+          throw Error("Live AI is unavailable on this server.");
+        setSchedule(db, {
+          grantId: String(b.grantId),
+          enabled: b.enabled,
+          live: b.live,
+        });
+        return NextResponse.json({
+          message: b.enabled
+            ? "Background preparation enabled. Staff approval remains required."
+            : "Background preparation paused.",
+          ...output(),
+        });
+      }
+      case "retry-scheduled": {
+        retryScheduledJob(db, String(b.jobId));
+        return NextResponse.json({
+          message: "Retry queued for the background worker.",
+          ...output(),
+        });
+      }
       case "report-date": {
         const grant = s.grants.find((g) => g.id === b.grantId);
         if (

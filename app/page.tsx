@@ -5,6 +5,8 @@ import Modal from "@/components/Modal";
 import AgentActivity from "@/components/AgentActivity";
 import GrantPreparation from "@/components/GrantPreparation";
 import GrantPortfolio from "@/components/GrantPortfolio";
+import ReportScheduler from "@/components/ReportScheduler";
+import type { schedulerStatus } from "@/lib/scheduler";
 import ThemePicker, {
   ViceScene,
   NeighborhoodSignature,
@@ -31,6 +33,7 @@ type Workspace = State & {
   reviewErrors: Record<string, string[]>;
   draftErrors: Record<string, string[]>;
   liveAvailable: boolean;
+  scheduler: ReturnType<typeof schedulerStatus>;
   workflowCurrent: Record<string, boolean>;
 };
 const money = (n: number) =>
@@ -136,6 +139,17 @@ export default function Home() {
   useEffect(() => {
     void loadWorkspace();
   }, []);
+  useEffect(() => {
+    if (tab !== "dashboard") return;
+    const timer = setInterval(() => {
+      void fetch("/api/workspace")
+        .then(async (response) => {
+          if (response.ok) setData(await response.json());
+        })
+        .catch(() => {});
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [tab]);
   useEffect(() => {
     const restoreScreen = () => {
       const screen = window.location.hash.slice(1);
@@ -445,6 +459,15 @@ export default function Home() {
               setLive={setLive}
               prepare={() => void prepareWorkspace()}
               navigate={navigate}
+            />
+          )}
+          {tab === "dashboard" && data.scheduler && (
+            <ReportScheduler
+              status={data.scheduler}
+              grants={data.grants}
+              busy={busy}
+              liveAvailable={data.liveAvailable}
+              act={act}
             />
           )}
           {tab === "dashboard" && (
