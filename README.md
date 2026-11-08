@@ -23,6 +23,14 @@ Denise does not need another spreadsheet. She needs a system where **a claim can
 3. **Reconciled spending.** Transactions are imported from a QuickBooks-style CSV (duplicates and bad rows rejected), allocated to grant budget categories, and reconciled in integer cents inside the funder's period.
 4. **Approve → seal → export.** A reviewer can approve only when every question has a valid draft, no category is over budget, and no in-period transaction is unallocated. Approval seals a SHA-256 snapshot. Any later change invalidates it, and export returns the sealed snapshot only while the approval is current.
 
+## Prepare the grant portfolio
+
+Dashboard and Review offer **Prepare grant for review**. A workflow coordinator audits evidence and spending, prepares every missing answer, then checks the package and hands blocking tasks to staff. Four tools must complete before its result can be saved. Existing answers (including staff edits) are preserved. Live mode uses the Agents SDK coordinator plus evidence-bound drafting runs; fixture mode executes deterministic preparation with no AI calls.
+
+The Dashboard portfolio shows each grant's own reporting period, current blockers, exact balances, and category warnings at 80% utilization. Staff can save actual report due dates and prepare due reports or all grants in one user-triggered batch. No background scheduler or direct funder submission is implemented. Each grant's existing questions, word limits, and dates remain independent. A failed batch or a concurrent workspace change saves nothing from the preparation. No tool can approve evidence, allocate money, approve the final package, or export.
+
+Handoffs persist in an automatically created SQLite `workflowRuns` table and show when workspace changes make them stale. Current deterministic blockers are displayed separately from the model's summary. Approval and export continue through the existing staff-reviewed snapshot flow.
+
 ## Built with
 
 Codex and the **OpenAI Agents SDK** (`@openai/agents`) · Next.js 16 · React 19 · TypeScript · SQLite (`better-sqlite3`) · Zod

@@ -23,6 +23,7 @@ export type Grant = {
   start: string;
   end: string;
   categories: Record<string, number>;
+  reportDue?: string;
 };
 export type Question = {
   id: string;
@@ -78,6 +79,21 @@ export type Approval = {
   at: string;
   invalidatedAt?: string;
 };
+export type WorkflowRun = {
+  id: string;
+  grantId: string;
+  mode: "live" | "fixture";
+  at: string;
+  durationMs: number;
+  workspaceHash: string;
+  prepared: number;
+  preserved: number;
+  summary: string;
+  blockers: string[];
+  evidence: { approved: number; pending: number; outside: number };
+  spending: { spent: number; balance: number; unallocated: string[] };
+  events: { label: string; detail: string; tool?: string }[];
+};
 export type State = {
   sources: Source[];
   facts: Fact[];
@@ -87,6 +103,7 @@ export type State = {
   allocations: Allocation[];
   drafts: Draft[];
   approvals: Approval[];
+  workflowRuns: WorkflowRun[];
 };
 export type Snapshot = {
   grant: Grant;
@@ -125,6 +142,8 @@ export function connect(
       "question_id TEXT GENERATED ALWAYS AS (json_extract(body,'$.questionId')) STORED NOT NULL UNIQUE REFERENCES questions(id)",
     approvals:
       "grant_id TEXT GENERATED ALWAYS AS (json_extract(body,'$.grantId')) STORED NOT NULL REFERENCES grants(id)",
+    workflowRuns:
+      "grant_id TEXT GENERATED ALWAYS AS (json_extract(body,'$.grantId')) STORED NOT NULL UNIQUE REFERENCES grants(id)",
   };
   for (const [name, columns] of Object.entries(schema))
     db.exec(
@@ -143,6 +162,7 @@ export function read(db: Database.Database): State {
       "allocations",
       "drafts",
       "approvals",
+      "workflowRuns",
     ].map((n) => [
       n,
       (
@@ -184,6 +204,7 @@ export function save(db: Database.Database, s: State) {
       "allocations",
       "drafts",
       "approvals",
+      "workflowRuns",
     ] as const;
     for (const name of [...order].reverse())
       db.prepare(`DELETE FROM ${name}`).run();
@@ -199,6 +220,17 @@ export function save(db: Database.Database, s: State) {
 export const id = () => randomUUID();
 export const hash = (o: unknown) =>
   createHash("sha256").update(JSON.stringify(o)).digest("hex");
+// Approval and workflow receipts do not change the work being audited.
+export const workflowHash = (s: State) =>
+  hash({
+    sources: s.sources,
+    facts: s.facts,
+    grants: s.grants,
+    questions: s.questions,
+    transactions: s.transactions,
+    allocations: s.allocations,
+    drafts: s.drafts,
+  });
 export const words = (s: string) =>
   s.trim() ? s.trim().split(/\s+/).length : 0;
 export const inPeriod = (date: string, g: Grant) =>
@@ -690,6 +722,7 @@ export function seed(): State {
     allocations: [],
     drafts: [],
     approvals: [],
+    workflowRuns: [],
   };
   importCSV(
     s,

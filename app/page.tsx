@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import Modal from "@/components/Modal";
 import AgentActivity from "@/components/AgentActivity";
+import GrantPreparation from "@/components/GrantPreparation";
+import GrantPortfolio from "@/components/GrantPortfolio";
 import ThemePicker, {
   ViceScene,
   NeighborhoodSignature,
@@ -29,6 +31,7 @@ type Workspace = State & {
   reviewErrors: Record<string, string[]>;
   draftErrors: Record<string, string[]>;
   liveAvailable: boolean;
+  workflowCurrent: Record<string, boolean>;
 };
 const money = (n: number) =>
   new Intl.NumberFormat("en-US", {
@@ -53,6 +56,7 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [generating, setGenerating] = useState<string>();
   const [generationError, setGenerationError] = useState<string>();
+  const [preparing, setPreparing] = useState(false);
   const [evidence, setEvidence] = useState<Fact>();
   const [live, setLive] = useState(false);
   const [edit, setEdit] = useState<{ id: string; claims: Claim[] }>();
@@ -214,6 +218,16 @@ export default function Home() {
     if (!ok) setGenerationError(questionId);
     setGenerating(undefined);
   }
+  async function prepareWorkspace() {
+    setPreparing(true);
+    await act({ action: "prepare", grantId: grant, live });
+    setPreparing(false);
+  }
+  async function prepareAll(asOf: string, scope: "due" | "all") {
+    setPreparing(true);
+    await act({ action: "prepare-portfolio", asOf, scope, live });
+    setPreparing(false);
+  }
   if (!data)
     return (
       <main className="loading">
@@ -309,9 +323,9 @@ export default function Home() {
           </div>
         </div>
         <div className="profile">
-          <span>JD</span>
+          <span>CL</span>
           <div>
-            <strong>Jamie Davis</strong>
+            <strong>Claudette</strong>
             <small>Demo director</small>
           </div>
           <span>⌄</span>
@@ -409,6 +423,46 @@ export default function Home() {
                 ×
               </button>
             </div>
+          )}
+          {(tab === "dashboard" || tab === "review") && (
+            <GrantPreparation
+              receipt={data.workflowRuns?.find((r) => r.grantId === grant)}
+              current={
+                data.workflowRuns?.some(
+                  (r) => r.grantId === grant && data.workflowCurrent?.[r.id],
+                ) || false
+              }
+              blockers={errors}
+              busy={busy}
+              preparing={preparing}
+              live={live}
+              liveAvailable={data.liveAvailable}
+              missing={
+                questions.filter(
+                  (q) => !data.drafts.some((d) => d.questionId === q.id),
+                ).length
+              }
+              setLive={setLive}
+              prepare={() => void prepareWorkspace()}
+              navigate={navigate}
+            />
+          )}
+          {tab === "dashboard" && (
+            <GrantPortfolio
+              grants={data.grants}
+              reports={data.reports}
+              blockers={data.reviewErrors}
+              busy={busy}
+              live={live}
+              prepare={(asOf, scope) => void prepareAll(asOf, scope)}
+              saveDate={(grantId, date) =>
+                void act({ action: "report-date", grantId, date })
+              }
+              openGrant={(id) => {
+                setGrant(id);
+                navigate("review");
+              }}
+            />
           )}
           {tab === "dashboard" && (
             <Dashboard
@@ -1362,7 +1416,7 @@ export default function Home() {
                           name="reviewer"
                           placeholder="Your name"
                           required
-                          defaultValue="Jamie Davis"
+                          defaultValue="Claudette"
                         />
                       </label>
                       <button
@@ -1421,7 +1475,11 @@ export default function Home() {
       </div>
       {busy && (
         <div className="working" role="status">
-          {generating ? "Generating answer…" : "Saving workspace…"}
+          {preparing
+            ? "Preparing grant for staff review…"
+            : generating
+              ? "Generating answer…"
+              : "Saving workspace…"}
         </div>
       )}
       {evidence && (

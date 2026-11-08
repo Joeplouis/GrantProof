@@ -14,6 +14,7 @@ export async function generate(
   s: State,
   q: Question,
   live: boolean,
+  signal?: AbortSignal,
 ): Promise<Draft> {
   const started = Date.now();
   const events: AgentActivity["events"] = [];
@@ -145,7 +146,9 @@ export async function generate(
   });
   const result = await run(agent, `Prepare an answer for question ${q.id}.`, {
     maxTurns: 5,
-    signal: AbortSignal.timeout(45000),
+    signal: signal
+      ? AbortSignal.any([signal, AbortSignal.timeout(45000)])
+      : AbortSignal.timeout(45000),
   });
   if (called.size !== 3)
     throw Error(

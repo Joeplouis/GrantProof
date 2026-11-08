@@ -10,8 +10,8 @@ const steps = [
   ],
   [
     "application",
-    "Watch the agent work",
-    "Generate an answer, then inspect its activity receipt: retrieved facts, funder rules, spending check, and draft validation. Fixture mode clearly shows that no AI was called.",
+    "Prepare the whole grant",
+    "From Dashboard, run Prepare grant for review. The workflow audits evidence and spending, drafts missing answers, preserves staff edits, and hands blockers to staff. Inspect each answer's activity in Application.",
   ],
   [
     "spending",
