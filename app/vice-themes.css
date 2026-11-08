@@ -705,3 +705,95 @@ html[data-theme="classic"] .neighborhood-signature {
     font-size: 16px;
   }
 }
+
+.grant-preparation {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.grant-preparation .sectionhead {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.grant-preparation .sectionhead p,
+.preparation-controls p,
+.preparation-next p,
+.preparation-receipt > p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.preparation-controls {
+  padding: 16px 0;
+}
+.preparation-receipt,
+.preparation-next {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  margin-top: 18px;
+}
+.preparation-next ul {
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+.grant-preparation .blocker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+@media (max-width: 600px) {
+  .grant-preparation {
+    padding: 16px;
+  }
+}
+.grant-portfolio {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.grant-portfolio > p,
+.portfolio-grant p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.portfolio-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0;
+}
+.portfolio-grants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.portfolio-grant {
+  padding: 18px;
+  background: var(--vice-raised, #f4f7f4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  min-width: 0;
+}
+.portfolio-grant form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0;
+}
+.portfolio-grant form button {
+  white-space: normal;
+}
+.portfolio-risk {
+  border-left: 3px solid var(--vice-warning, #85511e);
+  padding-left: 10px;
+}
+@media (max-width: 800px) {
+  .portfolio-grants {
+    grid-template-columns: 1fr;
+  }
+  .grant-portfolio {
+    padding: 16px;
+  }
+}

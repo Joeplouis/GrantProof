@@ -14,8 +14,10 @@ import {
   Fact,
   hash,
   validateDraft,
+  workflowHash,
 } from "@/lib/store";
 import { generate } from "@/lib/agent";
+import { prepareGrant, preparePortfolio } from "@/lib/workflow";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function output() {
@@ -35,6 +37,9 @@ function output() {
         s.drafts.map((d) => [d.id, validateDraft(s, d)]),
       ),
       liveAvailable: !!process.env.OPENAI_API_KEY,
+      workflowCurrent: Object.fromEntries(
+        s.workflowRuns.map((r) => [r.id, r.workspaceHash === workflowHash(s)]),
+      ),
     };
   } finally {
     db.close();
@@ -57,6 +62,33 @@ export async function POST(req: NextRequest) {
     const initialHash = hash(s);
     let message = "Changes saved.";
     switch (b.action) {
+      case "report-date": {
+        const grant = s.grants.find((g) => g.id === b.grantId);
+        if (
+          !grant ||
+          (b.date !== "" && (typeof b.date !== "string" || !validDate(b.date)))
+        )
+          throw Error("Choose a grant and valid report due date.");
+        if (b.date) grant.reportDue = b.date;
+        else delete grant.reportDue;
+        message =
+          "Report due date saved. Review grant configuration changes before approval.";
+        break;
+      }
+      case "prepare-portfolio": {
+        if (b.scope !== "all" && b.scope !== "due")
+          throw Error("Choose due reports or all grants.");
+        const result = await preparePortfolio(
+          s,
+          String(b.asOf),
+          b.scope,
+          b.live === true,
+        );
+        s.drafts = result.drafts;
+        s.workflowRuns = result.workflowRuns;
+        message = `${result.count} grants prepared for staff review. No approvals or financial allocations were made.`;
+        break;
+      }
       case "source": {
         if (
           typeof b.name !== "string" ||
@@ -104,6 +136,20 @@ export async function POST(req: NextRequest) {
           f.kind = b.kind as Fact["kind"];
         }
         f.approved = b.approved === true;
+        break;
+      }
+      case "prepare": {
+        const result = await prepareGrant(
+          s,
+          String(b.grantId),
+          b.live === true,
+        );
+        s.drafts = result.drafts;
+        s.workflowRuns = [
+          ...s.workflowRuns.filter((r) => r.grantId !== b.grantId),
+          result.receipt,
+        ];
+        message = `Grant preparation complete: ${result.receipt.prepared} answers prepared, ${result.receipt.preserved} preserved. Staff approval required.`;
         break;
       }
       case "generate": {

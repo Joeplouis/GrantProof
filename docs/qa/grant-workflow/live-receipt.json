@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "data": "fictional isolated workspace",
+  "liveCoordinatorRuns": 1,
+  "liveDraftRuns": 2,
+  "unapprovedExportStatus": 409,
+  "receipt": {
+    "id": "7872ff42-6d82-4491-a7fc-d5dc5c178e88",
+    "grantId": "g1",
+    "mode": "live",
+    "at": "2026-11-08T20:57:49.130Z",
+    "durationMs": 8357,
+    "workspaceHash": "5e3c0fa8bc1c099647cc0023d46c358ac8b396a05fd4e9fc47a3dc98931cd1c0",
+    "prepared": 2,
+    "preserved": 0,
+    "summary": "The grant g1 has 2 pieces of approved evidence and 0 pending, with 2 pieces outside the period. All spending categories are on track with no unallocated expenses. Two missing answers were prepared based on approved evidence. There are no blockers currently preventing staff review, but staff approval is required before submission. The grant is ready for staff review.",
+    "blockers": [],
+    "evidence": {
+      "approved": 2,
+      "pending": 0,
+      "outside": 2
+    },
+    "spending": {
+      "spent": 1620000,
+      "balance": 3380000,
+      "unallocated": []
+    },
+    "events": [
+      {
+        "label": "Audited evidence readiness",
+        "detail": "2 approved facts; 0 pending staff review; 2 outside the grant period. Pending evidence was not approved.",
+        "tool": "audit_grant_evidence"
+      },
+      {
+        "label": "Audited spending readiness",
+        "detail": "0 transactions need staff allocation. Category balances and reporting dates were checked; no allocations were changed.",
+        "tool": "audit_grant_spending"
+      },
+      {
+        "label": "Prepared missing answers",
+        "detail": "2 new drafts prepared; 0 existing answers preserved, including staff edits.",
+        "tool": "prepare_missing_answers"
+      },
+      {
+        "label": "Prepared the staff handoff",
+        "detail": "0 blocking issues. Ready for staff review; not approved.",
+        "tool": "inspect_review_readiness"
+      }
+    ]
+  }
+}
