@@ -350,10 +350,61 @@ export function figuresIn(s: State): Set<number> {
   return out;
 }
 
+const GENERIC_LABELS = [
+  "total",
+  "remaining",
+  "budget",
+  "spent",
+  "spend",
+  "balance",
+  "status",
+  "grant",
+  "fund",
+  "category",
+  "categories",
+  "breakdown",
+  "note",
+  "answer",
+  "result",
+  "summary",
+  "amount",
+  "cost",
+  "left",
+];
+
+/** Names that exist in the data — money lines must anchor to one of these. */
+function realNames(s: State): string[] {
+  const names = new Set<string>(["tidepath", "tidepath family alliance"]);
+  for (const g of s.grants) {
+    names.add(g.name.toLowerCase());
+    names.add(g.funder.toLowerCase());
+    for (const c of Object.keys(g.categories)) names.add(c.toLowerCase());
+  }
+  for (const src of s.sources) names.add(src.name.toLowerCase());
+  for (const t of s.transactions) names.add(t.payee.toLowerCase());
+  return [...names];
+}
+
+/** Percentages that literally appear in the workspace's own texts. */
+function dataPercents(s: State): Set<string> {
+  const out = new Set<string>();
+  const texts = [
+    ...s.facts.map((f) => f.excerpt),
+    ...s.sources.map((x) => x.text),
+  ].join(" ");
+  for (const m of texts.matchAll(/(\d+(?:\.\d+)?)\s*%/g)) out.add(m[1]);
+  return out;
+}
+
 /**
  * The LLM never gets the last word — the same doctrine as GrantProof's own
- * draft validator. Every $-figure in a live answer must exist in the
- * database, or the answer is discarded for the deterministic lookup.
+ * draft validator. A live answer is discarded for the deterministic lookup
+ * if any of these hold:
+ * - a $-figure does not exist in the database;
+ * - it computes figures of its own (day counts, or percentages that are not
+ *   quoted from the data);
+ * - a money line is labeled with a name that is not in the data (renamed
+ *   or invented categories) instead of a real name or a plain total word.
  */
 export function validateAnswer(s: State, answer: string): boolean {
   const allowed = figuresIn(s);
@@ -363,6 +414,29 @@ export function validateAnswer(s: State, answer: string): boolean {
     const cents = Math.round(parseFloat(m[1].replace(/,/g, "")) * 100);
     if (!allowed.has(cents)) return false;
   }
+  const dataText = [
+    ...s.facts.map((f) => f.excerpt),
+    ...s.sources.map((x) => x.text),
+    ...s.grants.map((g) => g.name),
+  ]
+    .join(" ")
+    .toLowerCase();
+  if (!dataText.includes("day") && /\bdays?\b/i.test(answer)) return false;
+  const percents = dataPercents(s);
+  for (const p of answer.matchAll(/(\d+(?:\.\d+)?)\s*%/g)) {
+    if (!percents.has(p[1])) return false;
+  }
+  const names = realNames(s);
+  for (const raw of answer.split("\n")) {
+    if (!raw.includes("$")) continue;
+    const line = raw.replace(/[*_#>`-]/g, " ").trim().toLowerCase();
+    if (names.some((n) => line.includes(n))) continue;
+    const label = line.split(":")[0];
+    if (GENERIC_LABELS.some((g) => label.includes(g))) continue;
+    if (!line.includes(":") && GENERIC_LABELS.some((g) => label.startsWith(g)))
+      continue;
+    return false;
+  }
   return true;
 }
 
@@ -370,6 +444,7 @@ async function askLLM(
   question: string,
   history: { role: string; text: string }[],
   s: State,
+  correction?: string,
 ): Promise<string | null> {
   const keys = llmKeys();
   if (!keys.length) return null;
@@ -390,6 +465,7 @@ async function askLLM(
           role: "system",
           content:
             SYSTEM +
+            (correction ? `\n\nCORRECTION TO YOUR PREVIOUS DRAFT: ${correction}` : "") +
             "\n\nWORKSPACE DATA:\n" +
             JSON.stringify(buildContext(s)),
         },
@@ -424,6 +500,20 @@ export async function askAssistant(
       const live = await askLLM(question, history, s);
       if (live && validateAnswer(s, live))
         return { answer: live, mode: "live" };
+      if (live) {
+        // One corrected retry; the validator still has the last word.
+        const cats = [
+          ...new Set(s.grants.flatMap((g) => Object.keys(g.categories))),
+        ].join(", ");
+        const retry = await askLLM(
+          question,
+          history,
+          s,
+          `It used figures, names or computations that are not in the data. Use these exact category names: ${cats}. Quote figures exactly as given. Do not mention days, percentages, or any figure you computed.`,
+        );
+        if (retry && validateAnswer(s, retry))
+          return { answer: retry, mode: "live" };
+      }
     } catch {
       // Fall through to the deterministic lookup.
     }

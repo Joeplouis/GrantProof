@@ -73,9 +73,17 @@ export default function AssistantBot() {
       {open && (
         <section className="gp-bot-panel" aria-label="GrantProof assistant">
           <header className="gp-bot-head">
-            <div>
-              <strong>GrantProof Assistant</strong>
-              <span>Ask about this workspace</span>
+            <div className="gp-bot-title">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="gp-bot-avatar"
+                src="/assistant-face.jpg"
+                alt="Joseph, founder of BookAI Studio"
+              />
+              <div>
+                <strong>GrantProof Assistant</strong>
+                <span>Ask about this workspace</span>
+              </div>
             </div>
             <button
               type="button"
@@ -134,7 +142,13 @@ export default function AssistantBot() {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        💬 Ask GrantProof
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="gp-bot-face"
+          src="/assistant-face.jpg"
+          alt="Joseph, founder of BookAI Studio"
+        />
+        Ask GrantProof <span aria-hidden="true">👋</span>
       </button>
     </div>
   );
