@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import Modal from "@/components/Modal";
+import AgentActivity from "@/components/AgentActivity";
 import ThemePicker, {
   ViceScene,
   NeighborhoodSignature,
@@ -50,6 +51,8 @@ export default function Home() {
   const [grant, setGrant] = useState("g1");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [generating, setGenerating] = useState<string>();
+  const [generationError, setGenerationError] = useState<string>();
   const [evidence, setEvidence] = useState<Fact>();
   const [live, setLive] = useState(false);
   const [edit, setEdit] = useState<{ id: string; claims: Claim[] }>();
@@ -203,6 +206,13 @@ export default function Home() {
     } finally {
       setBusy(false);
     }
+  }
+  async function generateAnswer(questionId: string) {
+    setGenerating(questionId);
+    setGenerationError(undefined);
+    const ok = await act({ action: "generate", id: questionId, live });
+    if (!ok) setGenerationError(questionId);
+    setGenerating(undefined);
   }
   if (!data)
     return (
@@ -746,6 +756,26 @@ export default function Home() {
                             <span className="tag neutral">v{d.version}</span>
                           )}
                         </div>
+                        {generating === q.id && (
+                          <div className="activity-pending" role="status">
+                            <strong>
+                              {live
+                                ? "Agent run in progress…"
+                                : "Running the fixture demo…"}
+                            </strong>
+                            <p>
+                              Waiting for the server. Completed actions and
+                              check results will appear after this run is saved.
+                            </p>
+                          </div>
+                        )}
+                        {generationError === q.id && (
+                          <div className="gap" role="alert">
+                            Generation failed. No new draft or activity receipt
+                            was saved. Any previous draft and receipt remain
+                            below.
+                          </div>
+                        )}
                         {d ? (
                           <>
                             <div className="draftcontent">
@@ -810,9 +840,7 @@ export default function Home() {
                               <button
                                 className="textbutton"
                                 disabled={busy}
-                                onClick={() =>
-                                  act({ action: "generate", id: q.id, live })
-                                }
+                                onClick={() => generateAnswer(q.id)}
                               >
                                 ↻ Regenerate
                               </button>
@@ -820,6 +848,11 @@ export default function Home() {
                             <div className="mode-caption">
                               {d.mode} · Staff approval required
                             </div>
+                            <AgentActivity
+                              draft={d}
+                              facts={data.facts}
+                              openEvidence={setEvidence}
+                            />
                           </>
                         ) : (
                           <>
@@ -838,9 +871,7 @@ export default function Home() {
                               <button
                                 className="primary"
                                 disabled={busy}
-                                onClick={() =>
-                                  act({ action: "generate", id: q.id, live })
-                                }
+                                onClick={() => generateAnswer(q.id)}
                               >
                                 ✧ Generate sourced answer
                               </button>
@@ -1390,7 +1421,7 @@ export default function Home() {
       </div>
       {busy && (
         <div className="working" role="status">
-          Saving workspace…
+          {generating ? "Generating answer…" : "Saving workspace…"}
         </div>
       )}
       {evidence && (

@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "generationRequests": 1,
+  "data": "fictional isolated workspace",
+  "activity": {
+    "engine": "live",
+    "generatedVersion": 1,
+    "completedAt": "2026-11-08T20:44:18.567Z",
+    "durationMs": 3232,
+    "events": [
+      {
+        "label": "Retrieved approved evidence",
+        "detail": "2 approved achieved facts matched the grant period. Pending facts and records outside this period were excluded.",
+        "tool": "retrieve_approved_facts",
+        "factIds": [
+          "f1",
+          "f2"
+        ],
+        "status": "complete"
+      },
+      {
+        "label": "Read funder requirements",
+        "detail": "100-word limit · achieved facts · 2026-01-01 to 2026-12-31.",
+        "tool": "retrieve_requirements",
+        "status": "complete"
+      },
+      {
+        "label": "Checked spending with code",
+        "detail": "$16,200.00 spent · $33,800.00 remaining. Exact-cent calculation; staff still review allocations.",
+        "tool": "deterministic_spending_validation",
+        "status": "complete"
+      },
+      {
+        "label": "Prepared a structured draft",
+        "detail": "2 claims returned by the model with fact references; 0 reported evidence gaps.",
+        "status": "complete"
+      },
+      {
+        "label": "Validated draft with code",
+        "detail": "2 claims · 0 evidence gaps · 0 validation issues. Checked citations, approved excerpts, dates, fact kind, and word limit.",
+        "status": "complete"
+      }
+    ]
+  }
+}

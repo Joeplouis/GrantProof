@@ -10,8 +10,8 @@ const steps = [
   ],
   [
     "application",
-    "Draft with a source trail",
-    "Generate both Family Futures answers. Open a numbered citation to inspect the original record.",
+    "Watch the agent work",
+    "Generate an answer, then inspect its activity receipt: retrieved facts, funder rules, spending check, and draft validation. Fixture mode clearly shows that no AI was called.",
   ],
   [
     "spending",

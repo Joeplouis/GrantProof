@@ -47,6 +47,19 @@ export type Allocation = {
   cents: number;
 };
 export type Claim = { text: string; factIds: string[] };
+export type AgentActivity = {
+  engine: "live" | "fixture";
+  generatedVersion: number;
+  completedAt: string;
+  durationMs: number;
+  events: {
+    label: string;
+    detail: string;
+    tool?: string;
+    factIds?: string[];
+    status: "complete" | "attention";
+  }[];
+};
 export type Draft = {
   id: string;
   questionId: string;
@@ -54,6 +67,7 @@ export type Draft = {
   gaps: string[];
   mode: string;
   version: number;
+  activity?: AgentActivity;
 };
 export type Approval = {
   id: string;
