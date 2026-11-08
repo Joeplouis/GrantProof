@@ -2,6 +2,10 @@
 import { useEffect, useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import Modal from "@/components/Modal";
+import ThemePicker, {
+  ViceScene,
+  NeighborhoodSignature,
+} from "@/components/ThemePicker";
 import type { State, Fact, Claim } from "@/lib/store";
 type Report = {
   grantId: string;
@@ -310,14 +314,19 @@ export default function Home() {
             <span className="slash">/</span>
             {tabs.find((t) => t[0] === tab)?.[2]}
           </div>
-          <span className="demo-pill">
-            <i />
-            Fictional demo data
-          </span>
+          <div className="header-actions">
+            <ThemePicker />
+            <span className="demo-pill">
+              <i />
+              Fictional demo data
+            </span>
+          </div>
         </header>
         <main>
           <div className="page-top">
+            <ViceScene />
             <div>
+              <NeighborhoodSignature />
               <div className="eyebrow">LESS PAPERWORK. MORE POSSIBILITY.</div>
               <h1>
                 {tab === "dashboard"

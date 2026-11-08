@@ -1,0 +1,596 @@
+/* Three original South Beach palettes. All decoration stays outside the data. */
+:root[data-theme="vice-nights"] {
+  color-scheme: dark;
+  --ink: #f1efff;
+  --muted: #b7b7d4;
+  --green: #75f0e7;
+  --light: #19243f;
+  --border: #343650;
+  --paper: #0d1328;
+  --vice-surface: #151c34;
+  --vice-raised: #202540;
+  --vice-sidebar: #0c1024;
+  --vice-accent: #68eee5;
+  --vice-pink: #ff64bc;
+  --vice-primary: #ff64bc;
+  --vice-primary-ink: #240d2d;
+  --vice-sun: #ff68bc;
+  --vice-palm: #72e8df;
+  --vice-silhouette: #282443;
+  --vice-success: #8af1bc;
+  --vice-success-bg: #17372f;
+  --vice-warning: #ffcf93;
+  --vice-warning-bg: #3c2c31;
+  --vice-hero: linear-gradient(110deg, #20203c, #2d1d45 60%, #183748);
+  --vice-page:
+    radial-gradient(ellipse at 95% 0, #13404555, transparent 40%),
+    radial-gradient(ellipse at 0 80%, #5a1a4b44, transparent 50%);
+}
+:root[data-theme="ocean-drive"] {
+  color-scheme: light;
+  --ink: #183e49;
+  --muted: #526e79;
+  --green: #08767a;
+  --light: #e0f6f2;
+  --border: #cde3e2;
+  --paper: #f4fbfa;
+  --vice-surface: #fffdfb;
+  --vice-raised: #e7f5f3;
+  --vice-sidebar: #f4e5ec;
+  --vice-accent: #08767a;
+  --vice-pink: #be4979;
+  --vice-primary: #08767a;
+  --vice-primary-ink: #ffffff;
+  --vice-sun: #f4a0bc;
+  --vice-palm: #267b80;
+  --vice-silhouette: #8ac5c5;
+  --vice-success: #226348;
+  --vice-success-bg: #e1f3e8;
+  --vice-warning: #85511e;
+  --vice-warning-bg: #fff0d7;
+  --vice-hero: linear-gradient(110deg, #e4f8f4 20%, #f7e3ec 85%);
+  --vice-page: radial-gradient(ellipse at 100% 0, #f7dbe855, transparent 60%);
+}
+:root[data-theme="sunset-strip"] {
+  color-scheme: light;
+  --ink: #4e2946;
+  --muted: #806475;
+  --green: #8d3b62;
+  --light: #fae4e1;
+  --border: #ebcfc9;
+  --paper: #fff5ea;
+  --vice-surface: #fffaf3;
+  --vice-raised: #f8e7de;
+  --vice-sidebar: #eed3ce;
+  --vice-accent: #97516e;
+  --vice-pink: #b43e65;
+  --vice-primary: #823556;
+  --vice-primary-ink: #ffffff;
+  --vice-sun: #f39a66;
+  --vice-palm: #8e4568;
+  --vice-silhouette: #d5969a;
+  --vice-success: #2e6a57;
+  --vice-success-bg: #e5f1e6;
+  --vice-warning: #855026;
+  --vice-warning-bg: #ffedce;
+  --vice-hero: linear-gradient(115deg, #fbe9cd 20%, #f2bfbb 90%);
+  --vice-page: radial-gradient(ellipse at 100% 0, #ffc58e44, transparent 60%);
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.theme-picker select {
+  width: 132px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--vice-surface, #fffefb);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+.theme-swatches {
+  display: flex;
+}
+.theme-swatches i {
+  width: 8px;
+  height: 8px;
+  margin: 0 0 0 -2px;
+  border: 1px solid var(--paper);
+  background: #ff64bc;
+}
+.theme-swatches i:nth-child(2) {
+  background: #69e4df;
+}
+.theme-swatches i:nth-child(3) {
+  background: #f4b36d;
+}
+.vice-scene {
+  display: none;
+}
+html:not([data-theme="classic"]) body {
+  background-color: var(--paper);
+  background-image: var(--vice-page);
+}
+html:not([data-theme="classic"]) aside {
+  background: var(--vice-sidebar);
+  box-shadow: inset -1px 0 var(--vice-accent);
+}
+html:not([data-theme="classic"]) header {
+  background: var(--vice-surface);
+}
+html:not([data-theme="classic"]) .page-top {
+  position: relative;
+  isolation: isolate;
+  min-height: 188px;
+  padding: 28px 32px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--vice-pink);
+  border-radius: 16px;
+  background: var(--vice-hero);
+  overflow: hidden;
+}
+html:not([data-theme="classic"]) .page-top > div:first-of-type {
+  max-width: 72%;
+  z-index: 1;
+}
+html:not([data-theme="classic"]) .page-top h1 {
+  font-weight: 850;
+  font-style: italic;
+  letter-spacing: -1.1px;
+}
+html:not([data-theme="classic"]) .vice-scene {
+  display: block;
+  position: absolute;
+  right: 5px;
+  bottom: 0;
+  width: 225px;
+  height: 165px;
+  z-index: -1;
+}
+html:not([data-theme="classic"]) .privacy {
+  display: none;
+}
+html:not([data-theme="classic"])
+  :is(.card, .grantbar, .stats, .modal, .importform) {
+  background: var(--vice-surface);
+  border-color: var(--border);
+  box-shadow: 0 5px 24px #0814240a;
+}
+html:not([data-theme="classic"])
+  :is(
+    .sourcehead,
+    .factrow,
+    .answerhead,
+    .answerfoot,
+    .draftcontent,
+    .transaction,
+    .profile,
+    .org,
+    .sidecard,
+    .sidecard > div,
+    footer,
+    .stat
+  ) {
+  border-color: var(--border);
+}
+html:not([data-theme="classic"])
+  :is(
+    .emptyanswer,
+    .guidecard,
+    .approvalcard,
+    .sidecard,
+    .workflow-next,
+    .org
+  ) {
+  background: var(--vice-raised);
+  border-color: var(--border);
+}
+html:not([data-theme="classic"]) :is(.primary, .exportlink.primary) {
+  background: var(--vice-primary);
+  color: var(--vice-primary-ink);
+  border-color: var(--vice-primary);
+  font-weight: 700;
+}
+html:not([data-theme="classic"])
+  :is(
+    .secondary,
+    .panel-move,
+    .drag-handle,
+    .filtertabs,
+    .question-number,
+    .countbadge
+  ) {
+  background: var(--vice-raised);
+  color: var(--vice-accent);
+  border-color: var(--border);
+}
+html:not([data-theme="classic"]) :is(input, textarea, select) {
+  background-color: var(--vice-surface);
+  color: var(--ink);
+  border-color: var(--border);
+}
+html:not([data-theme="classic"]) :is(input, textarea)::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+html:not([data-theme="classic"])
+  :is(
+    .textbutton,
+    .evidencecheck,
+    .spark,
+    .navicon,
+    .citation,
+    .exportlink,
+    .panel-icon
+  ) {
+  color: var(--vice-accent);
+}
+html:not([data-theme="classic"])
+  :is(.panel-icon, .citation, .beta, .org-icon, .profile > span:first-child) {
+  background: var(--vice-raised);
+}
+html:not([data-theme="classic"]) .brandmark {
+  background: var(--vice-primary);
+  color: var(--vice-primary-ink);
+  box-shadow: 3px 3px 0 var(--vice-accent);
+}
+html:not([data-theme="classic"]) .brandmark > span {
+  background: var(--vice-accent);
+  color: var(--vice-sidebar);
+  border-color: var(--vice-sidebar);
+}
+html:not([data-theme="classic"]) .brand {
+  letter-spacing: -1.1px;
+}
+html:not([data-theme="classic"]) nav button {
+  color: var(--muted);
+}
+html:not([data-theme="classic"]) nav button.active {
+  background: var(--vice-raised);
+  color: var(--vice-accent);
+  box-shadow: inset 3px 0 var(--vice-pink);
+}
+html:not([data-theme="classic"]) .dashboard-panel {
+  border-top: 2px solid var(--vice-accent);
+}
+html:not([data-theme="classic"]) .dashboard-panel:nth-child(even) {
+  border-top-color: var(--vice-pink);
+}
+html:not([data-theme="classic"]) .dashboard-panel.drop-target {
+  border-color: var(--vice-pink);
+  box-shadow: 0 0 0 3px var(--border);
+}
+html:not([data-theme="classic"]) .drag-handle[aria-pressed="true"] {
+  border-color: var(--vice-pink);
+  color: var(--vice-pink);
+  background: var(--vice-raised);
+}
+html:not([data-theme="classic"]) :is(.progress, .budget-progress) {
+  background: var(--vice-raised);
+}
+html:not([data-theme="classic"]) :is(.progress span, .budget-progress span) {
+  background: var(--vice-accent);
+}
+html:not([data-theme="classic"]) :is(thead, tfoot) {
+  background: var(--vice-raised);
+}
+html:not([data-theme="classic"]) :is(th, td) {
+  border-color: var(--border);
+}
+html:not([data-theme="classic"]) :is(.tag.neutral, .demo-pill) {
+  color: var(--muted);
+  background: var(--vice-raised);
+  border-color: var(--border);
+}
+html:not([data-theme="classic"])
+  :is(.tag.good, .ready, .notice:not(.notice-error)) {
+  color: var(--vice-success);
+  background: var(--vice-success-bg);
+  border-color: var(--border);
+}
+html:not([data-theme="classic"])
+  :is(.tag.warning, .reviewblockers, .gap, .notice-error) {
+  color: var(--vice-warning);
+  background: var(--vice-warning-bg);
+  border-color: var(--border);
+}
+html:not([data-theme="classic"])
+  :is(.gap p, .gap strong, .reviewblockers p, .reviewblockers .textbutton) {
+  color: inherit;
+}
+html:not([data-theme="classic"])
+  :is(
+    .subtitle,
+    .breadcrumb,
+    .eyebrow,
+    .small-label,
+    .navlabel,
+    .stat > span,
+    .stat small,
+    .sectionhead p,
+    .answerhead p,
+    .emptyanswer p,
+    .emptyanswer small,
+    .muted,
+    .sidecard p,
+    .sidecard > div,
+    .dashboard-panel > p,
+    .dashboard-metrics span,
+    .dashboard-value small,
+    .dashboard-budget-note,
+    .layout-note,
+    .dashboard-layout-note,
+    .mode-caption,
+    .guidecard p,
+    .approvalcard > p,
+    .nextstep p,
+    .sourcehead p,
+    .factmeta,
+    .reviewtotals span,
+    .reviewreport > p,
+    .importform p,
+    .editform > p,
+    footer,
+    .period-hint,
+    .export-blocked p,
+    .evidencecheck small,
+    .tablehint
+  ) {
+  color: var(--muted);
+}
+html:not([data-theme="classic"]) .filtertabs button {
+  color: var(--muted);
+}
+html:not([data-theme="classic"]) .filtertabs button[aria-pressed="true"] {
+  color: var(--vice-accent);
+  background: var(--vice-surface);
+}
+html:not([data-theme="classic"]) .modalback {
+  background: #0b1027b8;
+}
+html:not([data-theme="classic"]) .modal blockquote {
+  border-color: var(--vice-accent);
+}
+html[data-theme="vice-nights"] h1 {
+  text-shadow: 2px 2px 0 #ff64bc38;
+}
+html[data-theme="vice-nights"] .brand {
+  color: #f9f0ff;
+}
+html[data-theme="vice-nights"] .primary {
+  box-shadow: 0 3px 16px #ff64bc24;
+}
+html[data-theme="ocean-drive"] .page-top h1 {
+  font-style: normal;
+}
+html[data-theme="ocean-drive"] .dashboard-panel {
+  border-radius: 18px 5px 18px 5px;
+}
+html[data-theme="sunset-strip"] .page-top h1 {
+  font-style: normal;
+  letter-spacing: -0.6px;
+}
+html[data-theme="sunset-strip"] .dashboard-panel {
+  border-radius: 4px 20px 4px 20px;
+}
+@media (max-width: 1100px) {
+  .theme-swatches {
+    display: none;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+}
+@media (max-width: 600px) {
+  header {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 90px;
+    gap: 8px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .theme-picker select {
+    width: 130px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .header-actions .demo-pill {
+    font-size: 7px;
+    padding: 4px 6px;
+    white-space: nowrap;
+  }
+  html:not([data-theme="classic"]) .page-top {
+    padding: 22px 19px 110px;
+    min-height: 260px;
+  }
+  html:not([data-theme="classic"]) .page-top > div:first-of-type {
+    max-width: 100%;
+  }
+  html:not([data-theme="classic"]) .page-top h1 {
+    font-size: 25px;
+    line-height: 1.3;
+  }
+  html:not([data-theme="classic"]) .vice-scene {
+    width: 160px;
+    height: 110px;
+    right: 5px;
+    opacity: 0.8;
+  }
+}
+/* Readable data and utility surfaces across all three palettes. */
+html:not([data-theme="classic"]) th {
+  color: var(--muted);
+  background: var(--vice-raised);
+}
+html:not([data-theme="classic"]) td {
+  color: var(--ink);
+}
+html:not([data-theme="classic"])
+  :is(.granticon, .txicon, .circleicon, .fact-filters, pre) {
+  color: var(--vice-accent);
+  background: var(--vice-raised);
+}
+html:not([data-theme="classic"]) .fact-filters button {
+  color: var(--muted);
+}
+html:not([data-theme="classic"]) .fact-filters button.selected {
+  color: var(--vice-accent);
+  background: var(--vice-surface);
+}
+html:not([data-theme="classic"])
+  :is(
+    .grant-funder,
+    .grant-funder small,
+    .workflow-next p,
+    .factmeta small,
+    .txmain > small,
+    .factrow code,
+    .reviewreport small,
+    .profile > span:last-child
+  ) {
+  color: var(--muted);
+}
+html:not([data-theme="classic"]) .workflow-next strong {
+  color: var(--ink);
+}
+html:not([data-theme="classic"]) .budget-track {
+  background: var(--vice-raised);
+}
+html:not([data-theme="classic"]) .budget-track > span {
+  background: var(--vice-accent);
+}
+html:not([data-theme="classic"]) :is(.demo-pill i, .sidecard > div i) {
+  background: var(--vice-accent);
+}
+html:not([data-theme="classic"]) input {
+  accent-color: var(--vice-pink);
+}
+html:not([data-theme="classic"]) :focus-visible {
+  outline-color: var(--vice-accent);
+}
+.vice-grid {
+  display: none;
+}
+html[data-theme="vice-nights"] .vice-grid {
+  display: block;
+}
+html:not([data-theme="classic"]) .dashboard-panel:hover {
+  box-shadow: 0 6px 24px #08142418;
+  border-right-color: var(--vice-accent);
+}
+html:not([data-theme="classic"]) .primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+html:not([data-theme="classic"])
+  :is(
+    .modecard p,
+    .modecard > small,
+    .approvalcard > small,
+    .guideitem small,
+    .evidence-search,
+    .fineprint
+  ) {
+  color: var(--muted);
+}
+html:not([data-theme="classic"]) :is(.guideitem > span, .emptyanswer > span) {
+  color: var(--vice-accent);
+}
+/* Original illustrations inspired by real Miami neighborhoods. */
+.scene-ocean,
+.scene-wynwood,
+.scene-havana {
+  display: none;
+}
+html[data-theme="vice-nights"] .scene-wynwood,
+html[data-theme="ocean-drive"] .scene-ocean,
+html[data-theme="sunset-strip"] .scene-havana {
+  display: block;
+}
+.neighborhood-signature {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  color: var(--vice-accent);
+  margin-bottom: 12px;
+}
+.neighborhood-signature span {
+  display: none;
+}
+html[data-theme="vice-nights"] .signature-wynwood,
+html[data-theme="ocean-drive"] .signature-ocean,
+html[data-theme="sunset-strip"] .signature-havana {
+  display: inline;
+}
+html[data-theme="classic"] .neighborhood-signature {
+  display: none;
+}
+.dashboard-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.walkthrough-intro {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.walkthrough-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 22px 0;
+}
+.walkthrough-step {
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--vice-raised, #f1f5eb);
+  color: var(--ink);
+  padding: 17px;
+}
+.walkthrough-step > span {
+  display: block;
+  color: var(--vice-accent, var(--green));
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.walkthrough-step strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.walkthrough-step small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.walkthrough-note {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+@media (max-width: 600px) {
+  .walkthrough-grid {
+    grid-template-columns: 1fr;
+  }
+}

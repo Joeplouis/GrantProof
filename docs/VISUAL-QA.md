@@ -29,3 +29,13 @@ The initial mobile drag test aimed near a panel edge that moved during edge scro
 Reproduce with `npm ci`, installed Google Chrome, and `npm run test:e2e`. The runner uses loopback port 4318, refuses to reuse an existing server, and resets only `data/playwright.sqlite`. Screenshots are written to ignored `test-results/` directories. Review them again when layout changes; these checks are functional assertions and screenshot inspection, not pixel-baseline comparisons.
 
 This completes the scoped Chromium visual review. Physical-device/Safari behavior and live OpenAI generation have not been tested.
+
+## Miami neighborhood collection — November 8 follow-up
+
+Three original visual variants now use real neighborhood references: **Wynwood** (neon mural geometry), **South Beach** (pastels and Art Deco lines), and **Little Havana** (warm storefronts and Calle Ocho). These are original decorative illustrations, not photographs of specific buildings or claims about real nonprofit customers. The original theme remains available.
+
+The style references are grounded in the official tourism descriptions of [Wynwood](https://www.miamiandbeaches.com/neighborhoods/wynwood), [the Art Deco District](https://www.miamiandbeaches.com/l/attractions/art-deco-district/2116), and [Calle Ocho](https://www.miamiandbeaches.com/things-to-do/attractions/explore-calle-ocho-in-little-havana).
+
+The header's **Workspace theme** menu saves the selection locally and restores it before paint. Each palette covers navigation, report cards, forms, tables, evidence filters, dialogs, and approval/error states. A new **Try the demo** dialog walks a first-time user through evidence, drafts, spending, and approval/export. Screenshots were inspected on desktop and phone layouts; the larger hero's native-drag check now targets the visible panel header while retaining its actual pointer drag and saved-order assertions.
+
+Validation: all **12 fixture browser tests**, **39 offline checks**, production build, and typecheck passed. Two server-dependent JSDOM cases remain opt-in. No extra paid API calls were made for the neighborhood design work. Screenshots and their manifest are under `docs/qa/miami-themes/`; a local comparison gallery is in `GrantProof-Miami-Variations` on the Desktop. See [the updated demo plan](DEMO.md) for the contest research, opening pitch, and remaining owner steps.
