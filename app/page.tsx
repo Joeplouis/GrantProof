@@ -3,6 +3,11 @@ import { useEffect, useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import CrmWorkspace from "@/components/CrmWorkspace";
 import Modal from "@/components/Modal";
+import AgentActivity from "@/components/AgentActivity";
+import GrantPreparation from "@/components/GrantPreparation";
+import GrantPortfolio from "@/components/GrantPortfolio";
+import ReportScheduler from "@/components/ReportScheduler";
+import type { schedulerStatus } from "@/lib/scheduler";
 import ThemePicker, {
   ViceScene,
   NeighborhoodSignature,
@@ -29,6 +34,8 @@ type Workspace = State & {
   reviewErrors: Record<string, string[]>;
   draftErrors: Record<string, string[]>;
   liveAvailable: boolean;
+  scheduler: ReturnType<typeof schedulerStatus>;
+  workflowCurrent: Record<string, boolean>;
 };
 const money = (n: number) =>
   new Intl.NumberFormat("en-US", {
@@ -52,6 +59,9 @@ export default function Home() {
   const [grant, setGrant] = useState("g1");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [generating, setGenerating] = useState<string>();
+  const [generationError, setGenerationError] = useState<string>();
+  const [preparing, setPreparing] = useState(false);
   const [evidence, setEvidence] = useState<Fact>();
   const [live, setLive] = useState(false);
   const [edit, setEdit] = useState<{ id: string; claims: Claim[] }>();
@@ -132,6 +142,17 @@ export default function Home() {
     void loadWorkspace();
   }, []);
   useEffect(() => {
+    if (tab !== "dashboard") return;
+    const timer = setInterval(() => {
+      void fetch("/api/workspace")
+        .then(async (response) => {
+          if (response.ok) setData(await response.json());
+        })
+        .catch(() => {});
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [tab]);
+  useEffect(() => {
     const restoreScreen = () => {
       const screen = window.location.hash.slice(1);
       if (tabs.some(([key]) => key === screen)) {
@@ -205,6 +226,23 @@ export default function Home() {
     } finally {
       setBusy(false);
     }
+  }
+  async function generateAnswer(questionId: string) {
+    setGenerating(questionId);
+    setGenerationError(undefined);
+    const ok = await act({ action: "generate", id: questionId, live });
+    if (!ok) setGenerationError(questionId);
+    setGenerating(undefined);
+  }
+  async function prepareWorkspace() {
+    setPreparing(true);
+    await act({ action: "prepare", grantId: grant, live });
+    setPreparing(false);
+  }
+  async function prepareAll(asOf: string, scope: "due" | "all") {
+    setPreparing(true);
+    await act({ action: "prepare-portfolio", asOf, scope, live });
+    setPreparing(false);
   }
   if (!data)
     return (
@@ -305,9 +343,9 @@ export default function Home() {
           </div>
         </div>
         <div className="profile">
-          <span>JD</span>
+          <span>CL</span>
           <div>
-            <strong>Jamie Davis</strong>
+            <strong>Claudette</strong>
             <small>Demo director</small>
           </div>
           <span>⌄</span>
@@ -413,6 +451,55 @@ export default function Home() {
             </div>
           )}
           {tab === "crm" && <CrmWorkspace />}
+          {(tab === "dashboard" || tab === "review") && (
+            <GrantPreparation
+              receipt={data.workflowRuns?.find((r) => r.grantId === grant)}
+              current={
+                data.workflowRuns?.some(
+                  (r) => r.grantId === grant && data.workflowCurrent?.[r.id],
+                ) || false
+              }
+              blockers={errors}
+              busy={busy}
+              preparing={preparing}
+              live={live}
+              liveAvailable={data.liveAvailable}
+              missing={
+                questions.filter(
+                  (q) => !data.drafts.some((d) => d.questionId === q.id),
+                ).length
+              }
+              setLive={setLive}
+              prepare={() => void prepareWorkspace()}
+              navigate={navigate}
+            />
+          )}
+          {tab === "dashboard" && data.scheduler && (
+            <ReportScheduler
+              status={data.scheduler}
+              grants={data.grants}
+              busy={busy}
+              liveAvailable={data.liveAvailable}
+              act={act}
+            />
+          )}
+          {tab === "dashboard" && (
+            <GrantPortfolio
+              grants={data.grants}
+              reports={data.reports}
+              blockers={data.reviewErrors}
+              busy={busy}
+              live={live}
+              prepare={(asOf, scope) => void prepareAll(asOf, scope)}
+              saveDate={(grantId, date) =>
+                void act({ action: "report-date", grantId, date })
+              }
+              openGrant={(id) => {
+                setGrant(id);
+                navigate("review");
+              }}
+            />
+          )}
           {tab === "dashboard" && (
             <Dashboard
               approvedFacts={approvedForGrant}
@@ -754,6 +841,26 @@ export default function Home() {
                             <span className="tag neutral">v{d.version}</span>
                           )}
                         </div>
+                        {generating === q.id && (
+                          <div className="activity-pending" role="status">
+                            <strong>
+                              {live
+                                ? "Agent run in progress…"
+                                : "Running the fixture demo…"}
+                            </strong>
+                            <p>
+                              Waiting for the server. Completed actions and
+                              check results will appear after this run is saved.
+                            </p>
+                          </div>
+                        )}
+                        {generationError === q.id && (
+                          <div className="gap" role="alert">
+                            Generation failed. No new draft or activity receipt
+                            was saved. Any previous draft and receipt remain
+                            below.
+                          </div>
+                        )}
                         {d ? (
                           <>
                             <div className="draftcontent">
@@ -818,9 +925,7 @@ export default function Home() {
                               <button
                                 className="textbutton"
                                 disabled={busy}
-                                onClick={() =>
-                                  act({ action: "generate", id: q.id, live })
-                                }
+                                onClick={() => generateAnswer(q.id)}
                               >
                                 ↻ Regenerate
                               </button>
@@ -828,6 +933,11 @@ export default function Home() {
                             <div className="mode-caption">
                               {d.mode} · Staff approval required
                             </div>
+                            <AgentActivity
+                              draft={d}
+                              facts={data.facts}
+                              openEvidence={setEvidence}
+                            />
                           </>
                         ) : (
                           <>
@@ -846,9 +956,7 @@ export default function Home() {
                               <button
                                 className="primary"
                                 disabled={busy}
-                                onClick={() =>
-                                  act({ action: "generate", id: q.id, live })
-                                }
+                                onClick={() => generateAnswer(q.id)}
                               >
                                 ✧ Generate sourced answer
                               </button>
@@ -1369,7 +1477,7 @@ export default function Home() {
                           name="reviewer"
                           placeholder="Your name"
                           required
-                          defaultValue="Jamie Davis"
+                          defaultValue="Claudette"
                         />
                       </label>
                       <button
@@ -1428,7 +1536,11 @@ export default function Home() {
       </div>
       {busy && (
         <div className="working" role="status">
-          Saving workspace…
+          {preparing
+            ? "Preparing grant for staff review…"
+            : generating
+              ? "Generating answer…"
+              : "Saving workspace…"}
         </div>
       )}
       {evidence && (

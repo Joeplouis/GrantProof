@@ -10,8 +10,8 @@ const steps = [
   ],
   [
     "application",
-    "Draft with a source trail",
-    "Generate both Family Futures answers. Open a numbered citation to inspect the original record.",
+    "Prepare the whole grant",
+    "From Dashboard, run Prepare grant for review. The workflow audits evidence and spending, drafts missing answers, preserves staff edits, and hands blockers to staff. Inspect each answer's activity in Application.",
   ],
   [
     "spending",

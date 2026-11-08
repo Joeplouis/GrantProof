@@ -23,6 +23,14 @@ Denise does not need another spreadsheet. She needs a system where **a claim can
 3. **Reconciled spending.** Transactions are imported from a QuickBooks-style CSV (duplicates and bad rows rejected), allocated to grant budget categories, and reconciled in integer cents inside the funder's period.
 4. **Approve → seal → export.** A reviewer can approve only when every question has a valid draft, no category is over budget, and no in-period transaction is unallocated. Approval seals a SHA-256 snapshot. Any later change invalidates it, and export returns the sealed snapshot only while the approval is current.
 
+## Prepare the grant portfolio
+
+Dashboard and Review offer **Prepare grant for review**. A workflow coordinator audits evidence and spending, prepares every missing answer, then checks the package and hands blocking tasks to staff. Four tools must complete before its result can be saved. Existing answers (including staff edits) are preserved. Live mode uses the Agents SDK coordinator plus evidence-bound drafting runs; fixture mode executes deterministic preparation with no AI calls.
+
+The Dashboard portfolio shows each grant's own reporting period, current blockers, exact balances, and category warnings at 80% utilization. Staff can save actual report due dates and prepare due reports or all grants in one user-triggered batch. An optional local background worker prepares enabled reports once per saved due date. Direct funder submission is not implemented. Each grant's existing questions, word limits, and dates remain independent. A failed batch or a concurrent workspace change saves nothing from the preparation. No tool can approve evidence, allocate money, approve the final package, or export.
+
+Handoffs persist in an automatically created SQLite `workflowRuns` table and show when workspace changes make them stale. Current deterministic blockers are displayed separately from the model's summary. Approval and export continue through the existing staff-reviewed snapshot flow.
+
 ## Built with
 
 Codex and the **OpenAI Agents SDK** (`@openai/agents`) · Next.js 16 · React 19 · TypeScript · SQLite (`better-sqlite3`) · Zod
@@ -80,3 +88,11 @@ npm run dev
 ```
 
 Run the completed branch `codex/grantproof-mvp`. The preview binds to `127.0.0.1:4317` on the machine running it; collaborators can clone this branch and run their own local workspace. Do not commit `.env.local`, SQLite databases, or real nonprofit records.
+
+## Background report preparation
+
+Run `npm run worker` from this checkout with `GRANTPROOF_DB` set to the same SQLite file as the app. The worker checks every minute while the Studio is awake. It loads the server-only key from `.env.local`; no secret is stored in scheduler receipts. In Dashboard, save the actual due date, enable the grant schedule, and choose fixture or live AI. Live mode uses API credits. No dates are inferred.
+
+For an optional macOS login worker, run `python3 scripts/install-report-worker.py --database /absolute/path/to/workspace.sqlite`. This requires a signed-in user session; it is not installed by pulling or merging code. Add `--enable-live` only to explicitly enable live AI for all grants. Remove with the same command plus `--uninstall`.
+
+Preparation runs once per grant and saved due date, including overdue dates, using America/New_York. It preserves existing answers and staff edits. Failed or interrupted runs require a staff-requested retry; a crash never silently repeats a model call. Workspace changes, a paused schedule, or a lost worker lease prevent stale results from being saved. The worker cannot approve evidence, allocate funds, approve packages, export, or submit. Staff review and approve each exact package before export. Set the next actual due date to schedule another report.

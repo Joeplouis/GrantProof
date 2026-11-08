@@ -7,6 +7,7 @@
     "dev": "next dev --hostname 127.0.0.1 --port 4317",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1 --port 4317",
+    "worker": "node --import tsx scripts/report-worker.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts && npm run test:components",
     "test:components": "tsx --test components/Dashboard.test.tsx components/Modal.test.tsx components/RecoveryFlow.test.tsx",
@@ -18,7 +19,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@openai/agents": "^0.21.0",
     "better-sqlite3": "^13.0.3",
