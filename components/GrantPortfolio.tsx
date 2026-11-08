@@ -78,8 +78,8 @@ export default function GrantPortfolio({
         {live
           ? "Live agent mode uses API calls for each grant and its missing answers."
           : "Fixture mode · no AI calls."}{" "}
-        This queue runs when you click Prepare; it does not run in the
-        background or submit reports.
+        These buttons run immediately. Use Background preparation above to
+        schedule due reports. Staff approval is always required.
       </p>
       <div className="portfolio-grants">
         {grants.map((grant) => {
