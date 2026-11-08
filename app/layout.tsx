@@ -2,6 +2,8 @@ import "./globals.css";
 import "./vice-themes.css";
 import "./sprig-theme.css";
 import "./crm.css";
+import "./assistant.css";
+import AssistantBot from "@/components/AssistantBot";
 export const metadata = {
   title: "GrantProof — evidence to impact",
   description: "Every claim has evidence. Every grant dollar reconciles.",
@@ -21,7 +23,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AssistantBot />
+      </body>
     </html>
   );
 }

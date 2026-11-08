@@ -1,0 +1,160 @@
+/* GrantProof page assistant — floating chat, theme-aware via site variables. */
+.gp-bot {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  font-family: inherit;
+}
+.gp-bot-fab {
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--green, #1d7a4f);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+.gp-bot-fab:hover {
+  filter: brightness(1.08);
+}
+.gp-bot-panel {
+  width: 384px;
+  max-width: calc(100vw - 32px);
+  height: 560px;
+  max-height: calc(100dvh - 120px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--paper, #ffffff);
+  color: var(--ink, #14201a);
+  border: 1px solid var(--border, #d8ded9);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+}
+.gp-bot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--green, #1d7a4f);
+  color: #fff;
+}
+.gp-bot-head strong {
+  display: block;
+  font-size: 16px;
+}
+.gp-bot-head span {
+  display: block;
+  font-size: 12.5px;
+  opacity: 0.85;
+}
+.gp-bot-close {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.gp-bot-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gp-bot-msg {
+  max-width: 88%;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.gp-bot-msg p {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.gp-bot-msg small {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.65;
+}
+.gp-bot-msg.assistant {
+  align-self: flex-start;
+  background: var(--light, #eef4ef);
+}
+.gp-bot-msg.assistant.dim {
+  opacity: 0.6;
+}
+.gp-bot-msg.user {
+  align-self: flex-end;
+  background: var(--green, #1d7a4f);
+  color: #fff;
+}
+.gp-bot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+.gp-bot-chips button {
+  border: 1px solid var(--border, #d8ded9);
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.gp-bot-chips button:hover {
+  border-color: var(--green, #1d7a4f);
+}
+.gp-bot-form {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border, #d8ded9);
+}
+.gp-bot-form input {
+  flex: 1;
+  border: 1px solid var(--border, #d8ded9);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: transparent;
+  color: inherit;
+  min-width: 0;
+}
+.gp-bot-form button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  background: var(--orange, #e07b39);
+}
+.gp-bot-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@media (max-width: 480px) {
+  .gp-bot {
+    right: 12px;
+    bottom: 12px;
+  }
+  .gp-bot-panel {
+    height: calc(100dvh - 110px);
+  }
+}
