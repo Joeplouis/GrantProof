@@ -1,46 +1,51 @@
-# Three-minute demo
+# GrantProof: three-minute judging demo
 
-Prepare: `npm run reset`; start the app; open http://127.0.0.1:4317 on the Mac Studio or an explicitly authorized remote desktop. Keep fixture mode visible. Do not describe the CSV as a live accounting integration.
+Working format, not a claim about the event's required video length. Use fictional records only. The app's guided entry is **Dashboard → Try the demo**. Choose **South Beach** for a light presentation, **Wynwood** for the neon/mural treatment, or **Little Havana** for warm Calle Ocho-inspired storefronts.
 
-**0:00–0:25 — The problem.** “Tidepath is fictional, but the paperwork problem is real: staff rewrite the same story for each funder, then reconcile different categories and fiscal years. GrantProof connects a claim to its record and a dollar to its grant. Staff keep control.”
+## The opening, in plain language
 
-**0:25–0:55 — Evidence.** Open Evidence library. Show the approved 120-family record and original line location. Show the pending 92% estimate: it cannot be used. Explain that importing text creates candidates, not truth. Achieved outcomes and future goals are separate.
+“We built GrantProof to turn a nonprofit's own records into a grant report. Every claim points to approved evidence. Every dollar reconciles against the funder's categories and dates. Staff approve the exact package before it leaves. Change a claim afterward and export locks. Let me show you.”
 
-**0:55–1:30 — Application.** Generate both Family Futures answers. Show word counts and fixture label. Click `[1]` to open source excerpt, document, location and period. “These are exact approved sentences. We flag missing evidence instead of inventing a statistic.” Briefly show Bridge Fund generation with a pending goal: an evidence gap appears. Switch back.
+## Show the product
 
-**1:30–2:05 — Money.** Open Grant spending. Show $50,000 budget, $16,200 spending, $33,800 remaining; category rows sum to the total. January 1 and December 31 count; January 1, 2027 does not. Import the sample CSV again: four duplicates skipped, totals unchanged. “This is a CSV export workflow; QuickBooks stays where it is.”
+**0:00–0:20 — The problem.** The supplied Tidepath challenge describes a director and bookkeeper losing days to questions, word limits, spending rules, and different funder years. Say who has the problem and show the workspace immediately. Do not claim measured customer adoption or time savings.
 
-**2:05–2:40 — Human control.** Open Review & export. Enter reviewer name and approve. Download the readable approved report and JSON audit package. Show snapshot ID/hash and source references. Edit one answer to an unsupported number: approval becomes invalid, export locks, and the evidence check identifies edited wording. Regenerate to restore the sourced version.
+**0:20–0:50 — Evidence.** Open Evidence library. Show an approved 120-family record and the pending 92% estimate. The estimate cannot enter a supported draft. Imported lines are candidates that need staff review.
 
-**2:40–3:00 — Close.** “One grant, one source trail, one reconciled report. A different fiscal period is already modeled. The optional bounded OpenAI Agents SDK path is implemented; today's verified demonstration is deterministic fixture mode. Next: staff pilots and richer document parsing.”
+**0:50–1:25 — AI with a source trail.** Generate both Family Futures answers. In a live presentation, enable **Use OpenAI Agents SDK** and wait for the two requests. Click a citation to show the original text, location, kind, and dates. Keep the mode label visible. Fixture mode is a tested, no-cost fallback; describe it honestly as a fixture demonstration. Real live SDK and browser acceptance receipts are in [live browser QA](LIVE-BROWSER-QA.md).
 
-# Submission checklist
+**1:25–2:00 — Exact money and funder rules.** Show $50,000 budget, $16,200 spent, and $33,800 remaining. Re-import `fixtures/quickbooks-sample.csv`: four duplicates are skipped and the balance stays unchanged. Briefly select Bridge Fund to show its July–June period; return to Family Futures. Explain the CSV workflow accurately: there is no direct QuickBooks connection.
 
-Official event URL supplied by the coordinating chat: [DevDay Exchange Community Hackathon](https://deepstation.ai/hackathons/vtl7ctbeihnikitvjwl3941h?tab=problem-statements). Selected challenge: “Grant applications and reports, each with its own rules.”
+**2:00–2:45 — The memorable proof.** Approve the application/report together. Download the actual readable HTML report and JSON audit package. Edit a claim to an unsupported 99% result, then return to review: approval is invalidated and export returns 409. The stored approved snapshot remains unchanged. This is the strongest finish because the audience sees a safeguard work.
 
-The coordinating chat verified the required three outcomes and judging categories before dispatch. This build maps to them:
+**2:45–3:00 — Close.** “The model drafts. Code reconciles. Staff approve. The result is one reviewable package, with the records behind it. Next we would pilot the workflow with staff and measure preparation time, correction rate, and report completeness.” These are proposed pilot measures, not results already achieved.
 
-| Required outcome / judging theme                           | Demonstration evidence                                                               |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Sourced answers, word limits, approved facts, missing gaps | Evidence + Application; citation/approval/word-limit tests.                          |
-| Spending and balances by category and spend-by date        | Spending; integer-cent reconciliation and allocation tests.                          |
-| Funder reporting dates                                     | Inclusive calendar-year and July–June fiscal-year tests.                             |
-| Problem fit                                                | One fictional nonprofit grant completed from records through staff approval/export.  |
-| Originality                                                | Shared evidence and financial approval snapshot; invalidation closes the loop.       |
-| Codex/OpenAI use                                           | Codex implementation; bounded Agents SDK integration present, live API unverified.   |
-| Feasibility/thoughtfulness                                 | Local persistence, CSV accounting workflow, explicit gaps, no autonomous submission. |
-| Presentation                                               | Four focused screens and this three-minute script. Visual browser QA pending.        |
+## What prior winners suggest
 
-**Exact submission-tab fields are NOT verified.** A public HTTP fetch returned the client-rendered shell, and browser control was unavailable. No deliverable field, video requirement, repository visibility requirement or submission format has been invented. Git must inspect the actual submission tab before delivery.
+This is our interpretation of public winner reports, not evidence of a guaranteed winning formula:
 
-- [x] Working source repository and draft PR: https://github.com/gitdot5/GrantProof/pull/1
-- [x] Fictional fixtures and expected totals documented.
-- [x] README, architecture/contracts and acceptance evidence included.
-- [x] Three-minute demo script prepared.
-- [ ] Verify actual submission form fields and upload/link requirements on the official page.
-- [ ] Verify team registration and Git/Joe details personally; this app did not register anyone.
-- [ ] Decide an authorized judging-access method. Loopback on the Studio is not a Miami-accessible demo URL.
-- [ ] Complete visual desktop/mobile browser QA and capture any required demo recording.
-- [ ] If live API is required, owner configures credentials and verifies actual live generation first.
-- [ ] Confirm the published deadline in the actual event UI. Dispatch context reports November 8, 2026 at 4:45 PM America/New_York; internal readiness target is 3:45 PM.
-- [ ] Git submits the final package. No registration, external message, public deploy, spending, or submission was performed here.
+- OpenAI's winners include Second Voice, which retains user choice; veTriage, which supports an existing staff workflow; and Echo Canvas, which keeps deterministic calculations outside the model. The common lesson for GrantProof is to make the user benefit and the human/AI boundary visible. [OpenAI winner report](https://developers.openai.com/blog/build-week-winners).
+- The University of Utah says its first-place project, Pieces of Them, was recognized for impact, commercial viability, and timely AI use. Our pitch should explain whose grant work improves and what a feasible staff pilot would measure. [Organizer's winner announcement](https://ai.utah.edu/blog/posts/2026/build_with_ai_hackathon-1.php).
+- Devpost's guidance stresses a clear problem, usable product, concise working demonstration, and accessible submission links. Its advice from previous winners recommends planning the script and showing actual interaction. The implication here is to demonstrate the source → spending → approval lock sequence and rehearse it. [Judging guidance](https://info.devpost.com/blog/understanding-hackathon-submission-and-judging-criteria), [demo advice from previous winners](https://info.devpost.com/blog/6-tips-for-making-a-hackathon-demo-video).
+
+## Actual event: verified November 8
+
+[DevDay Exchange Community Hackathon](https://deepstation.ai/hackathons/vtl7ctbeihnikitvjwl3941h?tab=problem-statements): Codex Hackathon for Miami's Non-Profits. Selected challenge: **Grant applications and reports, each with its own rules**. The official page describes useful working software for South Florida nonprofits, and lists Codex, OpenAI API, and the OpenAI Agents SDK as acceptance criteria. Our build uses all three; the API/SDK path has real execution receipts.
+
+The page says **submissions close November 8, 2026 at 4:45 p.m. EST**. It advertises $100 Codex and $50 API credits per person; whether a specific account has redeemed these or its remaining balance is not verified by this app.
+
+The public **Judging Criteria** tab currently renders “Showing Judging Criteria,” without a scoring rubric or weights. The public **Submission** tab does not display a form. Exact fields, video length, and signed-in team status are therefore still unverified. Do not invent them or present general Devpost criteria as this event's published rubric.
+
+## Ready and still to finish
+
+- [x] All three core parts merged into public `main`; real live browser workflow passed.
+- [x] Claim citations, missing-evidence gaps, word limits, exact cents, funder periods, approval invalidation, and real exports demonstrated/tested.
+- [x] Desktop/phone visual checks completed; real-neighborhood theme variants and a guided first-use walkthrough prepared on `codex/miami-vice-themes`.
+- [x] Real live SDK and live browser receipts committed. The new theme/guide checks run in fixture mode and add no API calls.
+- [x] Concise demonstration script prepared; fixture video draft is labeled as such when recorded.
+- [ ] Review the new design branch with the team, choose the presentation theme, and rehearse the actual demonstration.
+- [ ] The team completes/validates registration and the signed-in submission form when ready.
+- [ ] Confirm the actual required repository/demo/video links and their accessibility to judges. A Studio loopback URL with an SSH tunnel is a personal preview, not a public judging URL.
+- [ ] Review narration and any video draft before uploading. No upload, registration, public deployment, external message, or contest submission is authorized by this document.
+
+Use a clean fictional workspace for rehearsal. Reset only the explicitly selected demo database, never somebody else's working data. Keep `.env.local` and SQLite files out of Git. The current prototype is a local single-user workflow; future identity, hosting, and document-format support should be described as next steps.

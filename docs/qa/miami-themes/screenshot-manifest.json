@@ -1,0 +1,103 @@
+{
+  "date": "2026-11-08",
+  "browserChecksPassed": 12,
+  "offlineChecksPassed": 39,
+  "screenshots": [
+    {
+      "file": "desktop-chrome/vice-nights-spending.png",
+      "sha256": "5e18b1e60f0428f695051922f06d99f3a0024877fbcd4312e18528a786e03eb9"
+    },
+    {
+      "file": "desktop-chrome/sunset-strip-dashboard.png",
+      "sha256": "52031a8a39c767dff9a58eecb76b53352ea53083f9f6954f6ddb3e09d070ec78"
+    },
+    {
+      "file": "desktop-chrome/vice-nights-dashboard.png",
+      "sha256": "b7736aa7d8f57733cd66325f7d0b14ae85637f531d33150b15f1bb8a00bdc8ef"
+    },
+    {
+      "file": "desktop-chrome/ocean-drive-dashboard.png",
+      "sha256": "b0a82892f6cc442455096ec51745cc35ba85b44aca9699eb0a6348814f1fc280"
+    },
+    {
+      "file": "desktop-chrome/vice-nights-evidence.png",
+      "sha256": "2384f571d95c9ece801772ce40381d7411124f21408cc3ab3a7fbbfd82fcf8fe"
+    },
+    {
+      "file": "desktop-chrome/classic-dashboard.png",
+      "sha256": "8c39b2ea8bd712e0fbec5398c08e6f6b7ce81e74b496ce41dcc970c94f935431"
+    },
+    {
+      "file": "desktop-chrome/vice-nights-review.png",
+      "sha256": "b0481996674a78c2af153d5ce66f28e06679130fcd3c0edcd575755e62727fbf"
+    },
+    {
+      "file": "desktop-chrome/vice-nights-application.png",
+      "sha256": "d6e10550a6e3fea071a5815b5d72142897826badb21339530f4c4942840383ad"
+    },
+    {
+      "file": "mobile-chrome/vice-nights-spending.png",
+      "sha256": "3e9ebec5cc16c329a9f3f6a91da0e53126ce80739529e4680c00eb0934c39b79"
+    },
+    {
+      "file": "mobile-chrome/sunset-strip-dashboard.png",
+      "sha256": "3913ab9e808d0bf013cc36e8a3099329cedbe9bcd5d0011c2ecc8210c7e7b614"
+    },
+    {
+      "file": "mobile-chrome/vice-nights-dashboard.png",
+      "sha256": "b0c299588784d1cf5ea4b404eb9e8a6ec4343c9b5081ce6d9965e547b6902330"
+    },
+    {
+      "file": "mobile-chrome/ocean-drive-dashboard.png",
+      "sha256": "6f44d03656481e070a3bffca7b38784c88ad30be15e7777a2e217ff5f829c45b"
+    },
+    {
+      "file": "mobile-chrome/vice-nights-evidence.png",
+      "sha256": "c362e61c1886ed60275b26892df0ceb37dd361d0c46ba38ea621882b9552530b"
+    },
+    {
+      "file": "mobile-chrome/classic-dashboard.png",
+      "sha256": "ef1d5ac619ee1bf1062bb37cccf12b9e125d4b07663f6162bafeffe8b12b7f32"
+    },
+    {
+      "file": "mobile-chrome/vice-nights-review.png",
+      "sha256": "9f36c6f357b92a6a490f9b9d1cf64da8ed2b0a2129a559eecc8353b1be5697d6"
+    },
+    {
+      "file": "mobile-chrome/vice-nights-application.png",
+      "sha256": "581e358fd14100e63ccda6877356b2121bd12642b88faa6a80c77f16702d9dc2"
+    },
+    {
+      "file": "compact-phone-chrome/vice-nights-spending.png",
+      "sha256": "98134c7a28a7541598dd20f83a101ba60426b15f156f12dcedcafe2678885477"
+    },
+    {
+      "file": "compact-phone-chrome/sunset-strip-dashboard.png",
+      "sha256": "a3a57b993d6c56a6f534fccd522c9be4f03664a7334e69b3b8fc07a0724dc329"
+    },
+    {
+      "file": "compact-phone-chrome/vice-nights-dashboard.png",
+      "sha256": "20318e435cf38074bd89a9c5a479befa288997e9f8e2c432c58e9a5dd4b41287"
+    },
+    {
+      "file": "compact-phone-chrome/ocean-drive-dashboard.png",
+      "sha256": "c722d867d433c94d79e68c5d296096d7b9f5b1594a03b9b0f7b2e36f485d7459"
+    },
+    {
+      "file": "compact-phone-chrome/vice-nights-evidence.png",
+      "sha256": "67f1fd9ad2b9d8a03f32af842c9ec822ae6b50927e2adf2653070e6076964274"
+    },
+    {
+      "file": "compact-phone-chrome/classic-dashboard.png",
+      "sha256": "84c0c52a5b9e78fde0a936e06e889a4ed73eac9c25815161d692d1a882b73c73"
+    },
+    {
+      "file": "compact-phone-chrome/vice-nights-review.png",
+      "sha256": "86674c58f9d2412001163ad9db76312e11512c49271768b47e595490b645fd88"
+    },
+    {
+      "file": "compact-phone-chrome/vice-nights-application.png",
+      "sha256": "3e39dd159e584a128c2166ecab2601fb94b80a2e52dc667caebba411dbd98fdc"
+    }
+  ]
+}

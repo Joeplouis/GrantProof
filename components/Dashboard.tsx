@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import DemoWalkthrough from "./DemoWalkthrough";
 const defaults = ["evidence", "application", "spending", "review"] as const;
 type Panel = (typeof defaults)[number];
 const labels: Record<Panel, string> = {
@@ -157,16 +158,19 @@ export default function Dashboard({
             with arrow keys, then press Enter.
           </p>
         </div>
-        <button
-          className="secondary"
-          onClick={() => {
-            cancelMove();
-            commit([...defaults]);
-            setAnnouncement("Default dashboard layout restored.");
-          }}
-        >
-          Reset layout
-        </button>
+        <div className="dashboard-tools">
+          <DemoWalkthrough navigate={navigate} />
+          <button
+            className="secondary"
+            onClick={() => {
+              cancelMove();
+              commit([...defaults]);
+              setAnnouncement("Default dashboard layout restored.");
+            }}
+          >
+            Reset layout
+          </button>
+        </div>
       </div>
       <div className="dashboard-grid">
         {order.map((panel, index) => (

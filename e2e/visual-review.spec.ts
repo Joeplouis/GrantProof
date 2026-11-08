@@ -95,7 +95,7 @@ test("visual review of every screen, dialogs, and saved pointer layout", async (
       await cdp.detach();
     }
   } else {
-    await handle.dragTo(target);
+    await handle.dragTo(target.locator(".dashboard-panel-head"));
   }
   await expect(page.locator("[data-dashboard-panel]").first()).toHaveAttribute(
     "data-dashboard-panel",

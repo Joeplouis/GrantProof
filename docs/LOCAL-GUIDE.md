@@ -15,7 +15,7 @@ npm run reset
 npm run dev
 ```
 
-Open [GrantProof locally](http://127.0.0.1:4317). It binds **127.0.0.1 only**. A URL on the Mac Studio is not a remote preview for Miami; no tunnel, public deployment, or remote access was created. Do not expose this unauthenticated prototype to the network.
+Open [GrantProof locally](http://127.0.0.1:4317). It binds **127.0.0.1 only**. The owner can access the private Studio preview through an authenticated SSH tunnel. This is not a public judging URL; no public deployment is included.
 
 For the production build:
 
@@ -38,9 +38,9 @@ Stop the dev server before `npm start`; both use port 4317. Reset only this fict
 
 **Deterministic fixture** is the default and the verified mode. It retrieves approved facts matching period/type/question requirements and assembles their exact excerpts. The records are already written as natural sentences; no free paraphrasing is allowed in this prototype.
 
-The optional **OpenAI Agents SDK** path runs server-side with three explicit read-only tools: approved facts, grant requirements, deterministic spending/validation. It uses structured output, a five-turn cap, a 45-second timeout, checks that all tools ran, and validates citations, exact excerpts, approval status, period, fact type and word limits in code. It cannot approve, export, submit, access files, or follow imported document instructions. SDK tracing is disabled. This is evidence validation, not a mathematical proof of factuality.
+The optional **OpenAI Agents SDK** path runs server-side with three explicit read-only tools: approved facts, grant requirements, deterministic spending/validation. It uses structured output, a five-turn cap, a 45-second timeout, checks that all tools ran, and validates citations, exact excerpts, approval status, period, fact type and word limits in code. Its supplied tools cannot approve, export, submit, or access files. Its prompt treats source content as untrusted data; the code independently validates returned claims. SDK tracing is disabled. This is evidence validation, not a mathematical proof of factuality.
 
-No authorized API-key setup tool or environment credential was available during this build. No unrelated project's credentials were searched or copied. To opt into live AI, the owner can put a key in ignored `.env.local` using `.env.example` as the variable guide, restart the server, and enable the mode in Application. `OPENAI_MODEL` is configurable; default `gpt-4.1-mini`. Live AI has **not** been verified and should not be presented as verified at the demo. No cost claim is made.
+On November 8, an authorized key was configured privately on the Studio. A real SDK check and full live browser journey passed with `gpt-4.1-mini`; see [live browser evidence](LIVE-BROWSER-QA.md). The key is never committed. Owners of another checkout can configure their own ignored `.env.local`, restart the server, and enable the mode in Application. `OPENAI_MODEL` remains configurable. Live calls incur API usage; fixture checks do not.
 
 ## Demo fixtures and exact totals
 
@@ -70,7 +70,7 @@ npm run qa:ui
 npm run reset
 ```
 
-See [acceptance evidence](docs/ACCEPTANCE.md), [architecture and contracts](docs/ARCHITECTURE.md), and the [three-minute demo and submission checklist](docs/DEMO.md). Browser visual QA and live AI remain explicitly separate from fixture/API/component checks.
+See [acceptance evidence](ACCEPTANCE.md), [architecture and contracts](ARCHITECTURE.md), and the [three-minute demo and submission checklist](DEMO.md). Browser visual QA and live AI remain explicitly separate from fixture/API/component checks.
 
 ## Scope and limitations
 
