@@ -451,6 +451,18 @@ export default function Home() {
             </div>
           )}
           {tab === "crm" && <CrmWorkspace />}
+          {tab === "dashboard" && (
+            <Dashboard
+              approvedFacts={approvedForGrant}
+              pendingFacts={grantFacts.length - approvedForGrant}
+              answersReady={answersReady}
+              questionCount={questions.length}
+              spending={{ ...report, end: g.end }}
+              approved={!!current}
+              blockers={errors}
+              navigate={navigate}
+            />
+          )}
           {(tab === "dashboard" || tab === "review") && (
             <GrantPreparation
               receipt={data.workflowRuns?.find((r) => r.grantId === grant)}
@@ -498,18 +510,6 @@ export default function Home() {
                 setGrant(id);
                 navigate("review");
               }}
-            />
-          )}
-          {tab === "dashboard" && (
-            <Dashboard
-              approvedFacts={approvedForGrant}
-              pendingFacts={grantFacts.length - approvedForGrant}
-              answersReady={answersReady}
-              questionCount={questions.length}
-              spending={{ ...report, end: g.end }}
-              approved={!!current}
-              blockers={errors}
-              navigate={navigate}
             />
           )}
           {tab === "evidence" && (

@@ -17,7 +17,7 @@ test("one preparation action assembles answers, preserves staff review, and refr
     name: "Grant workflow preparation",
   });
   await panel
-    .getByRole("button", { name: "Prepare grant for review", exact: true })
+    .getByRole("button", { name: "Prepare this grant for review", exact: true })
     .click();
   await expect(panel.getByText("Fixture workflow handoff")).toBeVisible();
   await expect(
@@ -62,7 +62,7 @@ test("one preparation action assembles answers, preserves staff review, and refr
     panel.getByText("Workspace changed · run again", { exact: true }),
   ).toBeVisible();
   await panel
-    .getByRole("button", { name: "Prepare grant for review", exact: true })
+    .getByRole("button", { name: "Prepare this grant for review", exact: true })
     .click();
   await expect(
     panel.getByText(/0 answers prepared · 2 preserved/),
@@ -83,7 +83,7 @@ test("one preparation action assembles answers, preserves staff review, and refr
   await page.goto("/#dashboard");
   await page.getByLabel("Current grant").selectOption("g2");
   await panel
-    .getByRole("button", { name: "Prepare grant for review", exact: true })
+    .getByRole("button", { name: "Prepare this grant for review", exact: true })
     .click();
   await expect(panel.getByText(/Missing approved evidence for goal/)).toBeVisible();
   await expect(

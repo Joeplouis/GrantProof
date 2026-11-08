@@ -34,7 +34,7 @@ export default function GrantPreparation({
       <div className="sectionhead">
         <div>
           <span className="small-label">GRANT WORKFLOW</span>
-          <h2>Prepare grant for review</h2>
+          <h2>Prepare this grant for review</h2>
           <p>
             Check evidence and spending, prepare missing answers, and hand the
             package to staff.
@@ -58,7 +58,7 @@ export default function GrantPreparation({
             : "Free fixture walkthrough: the same preparation checks run with sample drafting. No AI agent is called."}
         </p>
         <button className="primary" disabled={busy} onClick={prepare}>
-          {preparing ? "Preparing grant…" : "Prepare grant for review"}
+          {preparing ? "Preparing grant…" : "Prepare this grant for review"}
         </button>
         {preparing && (
           <p role="status">
