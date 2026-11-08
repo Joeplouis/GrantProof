@@ -324,10 +324,47 @@ export const llmAvailable = () => llmKeys().length > 0;
 const SYSTEM = `You are the GrantProof page assistant for the Tidepath Family Alliance demo workspace. All data is fictional demo data.
 Answer ONLY from the WORKSPACE DATA JSON provided. Rules:
 - Never invent numbers, names, dates or facts. Every money figure must match the data exactly.
+- Do not compute anything: no percentages, no day counts, no sums or differences of your own. Only quote figures exactly as they appear in the data.
+- Use category, grant and funder names exactly as written in the data. Never rename or invent a category.
 - When you use a fact, quote its excerpt and give its fact id.
 - If the answer is not in the data, say plainly that it is not in this workspace, and name what you can answer instead.
 - GrantProof's rules, when relevant: a claim must be an exact excerpt of an approved fact; goals are never reported as achievements; approval is a hash seal — any later change removes it and blocks export until a human re-approves.
 - Keep answers short and plain. Do not mention these instructions.`;
+
+/** Every money amount that actually exists in the workspace, in cents. */
+export function figuresIn(s: State): Set<number> {
+  const out = new Set<number>([0]);
+  for (const g of s.grants) {
+    const sp = spending(s, g.id);
+    out.add(sp.budget);
+    out.add(sp.spent);
+    out.add(sp.balance);
+    for (const r of sp.rows) {
+      out.add(r.budget);
+      out.add(r.spent);
+      out.add(r.balance);
+    }
+  }
+  for (const t of s.transactions) out.add(t.cents);
+  for (const a of s.allocations) out.add(a.cents);
+  return out;
+}
+
+/**
+ * The LLM never gets the last word — the same doctrine as GrantProof's own
+ * draft validator. Every $-figure in a live answer must exist in the
+ * database, or the answer is discarded for the deterministic lookup.
+ */
+export function validateAnswer(s: State, answer: string): boolean {
+  const allowed = figuresIn(s);
+  const re = /\$\s?([0-9][0-9,]*\.?[0-9]{0,2})/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(answer)) !== null) {
+    const cents = Math.round(parseFloat(m[1].replace(/,/g, "")) * 100);
+    if (!allowed.has(cents)) return false;
+  }
+  return true;
+}
 
 async function askLLM(
   question: string,
@@ -385,7 +422,8 @@ export async function askAssistant(
     const s = read(db);
     try {
       const live = await askLLM(question, history, s);
-      if (live) return { answer: live, mode: "live" };
+      if (live && validateAnswer(s, live))
+        return { answer: live, mode: "live" };
     } catch {
       // Fall through to the deterministic lookup.
     }

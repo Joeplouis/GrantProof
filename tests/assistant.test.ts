@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildContext, deterministicAnswer } from "../lib/assistant";
+import {
+  buildContext,
+  deterministicAnswer,
+  validateAnswer,
+} from "../lib/assistant";
 import { seed } from "../lib/store";
 
 test("assistant answers grant money from the seeded database", () => {
@@ -30,6 +34,18 @@ test("assistant explains the goals gap from unapproved goal facts", () => {
 test("assistant refuses to invent answers outside the workspace", () => {
   const answer = deterministicAnswer(seed(), "What is the CEO's salary?");
   assert.match(answer, /isn't in this workspace/);
+});
+
+test("validator accepts answers whose figures all exist in the database", () => {
+  const good =
+    "Family Futures 2026 has $33,800.00 remaining of its $50,000.00 budget, with $16,200.00 spent. Family coaching: $12,000.00 spent of $30,000.00.";
+  assert.equal(validateAnswer(seed(), good), true);
+});
+
+test("validator rejects invented category figures (browser-run regression)", () => {
+  const invented =
+    "Family coaching: $15,150.00 remaining ($19,850.00 spent of $35,000.00). Family activities: $6,650.00 remaining ($8,350.00 spent).";
+  assert.equal(validateAnswer(seed(), invented), false);
 });
 
 test("assistant context carries the full workspace for the live model", () => {
