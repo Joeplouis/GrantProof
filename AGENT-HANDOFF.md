@@ -1,5 +1,7 @@
 # GrantProof — Agent Handoff: The 3-Person Split
 
+**Current integration update (2026-11-07):** `codex/part1-part2-integration` combines the latest Part 2 engine and Part 1 screens with synthetic and Playwright tests. Read [the integration handoff](docs/INTEGRATION-HANDOFF.md) for the changes, test commands, and remaining checks. The assignments below describe the original split.
+
 **Read this first. Pick your part. Stay in your part.**
 One file = one owner. Nobody edits another person's files. If you need a change in someone else's part, ask that person — do not edit it yourself.
 

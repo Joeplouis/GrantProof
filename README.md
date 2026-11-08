@@ -48,7 +48,9 @@ npm run dev     # http://127.0.0.1:4317
 
 Optional live AI: copy `.env.example` to `.env.local` and set `OPENAI_API_KEY`.
 
-Checks: `npm run typecheck` · `npm test`
+Checks: `npm run typecheck` · `npm test` · `npm run test:e2e` (desktop/mobile Chrome; isolated fictional database)
+
+The combined Part 1/Part 2 branch and its verification status are summarized in [the integration handoff](docs/INTEGRATION-HANDOFF.md).
 
 ## Demo script (about 3 minutes)
 

@@ -14,7 +14,9 @@
 | `06-approved-goals-plan-2027.txt` | Goals are different from accomplishments; future funder period | Import both pending; approve as goals; regenerate q3 |
 | `07-unapproved-unsafe-claims.txt` | Unapproved estimate and prompt-injection text | Leave both pending; neither can appear in generated claims |
 | `expected-results.json` | Machine-readable amounts, source periods, and allocation map | Totals below |
-| `run-api-smoke-test.mjs` | Real HTTP requests against running GrantProof | 9 end-to-end test groups, optional 100-row stress |
+| `run-api-smoke-test.mjs` | Real HTTP requests against running GrantProof | 10 end-to-end test groups, 11 with the optional 100-row stress |
+| `../../tests/problem-acceptance.test.ts` | Direct evidence, accounting, and approval rules using this pack | Runs in `npm test` without a server |
+| `../../tests/synthetic-flow.test.ts` | Synthetic fixtures through the merged UI, API, and ledger | Fresh isolated workspace reaches the expected balances and sealed export |
 
 ## Expected amounts after test allocations
 
@@ -28,6 +30,12 @@ Seed includes Grant g1 with $50,000 budget and $16,200 spending, and Grant g2 wi
 `X107` is deliberately split: **$700 to g1 coaching + $500 to g2 coaching = $1,200**; another cent allocated to either grant must fail. `X105` dated Feb 11, 2027 must be rejected if allocated to g1. All amounts use integer cents in API requests.
 
 ## Automated test — against the actual app
+
+`npm test` runs the direct problem-acceptance test without a server. It checks
+that only approved facts become exact claims, missing goals remain gaps,
+unallocated expenses block approval, both grants reconcile to
+`expected-results.json`, and changing an approved answer revokes that grant's
+seal while leaving the other grant approved.
 
 1. Save or extract this pack somewhere on the machine running GrantProof (or where it can reach a locally running GrantProof server).
 2. In the **GrantProof repo**, install and start the app using **two terminals**:
@@ -56,6 +64,29 @@ Seed includes Grant g1 with $50,000 budget and $16,200 spending, and Grant g2 wi
    npm run reset
    ```
 
+On the combined Part 1/Part 2 branch, run the UI-to-export test separately from
+other stateful tests. Start the app with a fresh isolated database, then run the
+test from the repo root in a second terminal:
+
+```bash
+GRANTPROOF_DB=/private/tmp/grantproof-synthetic-ui.sqlite npm run reset
+GRANTPROOF_DB=/private/tmp/grantproof-synthetic-ui.sqlite npm run dev
+# Second terminal:
+GRANTPROOF_SYNTHETIC_URL=http://127.0.0.1:4317 npx tsx --test tests/synthetic-flow.test.ts
+```
+
+The test checks that the unsafe source stays pending, the synthetic CSV blocks
+approval until allocated, both grant balances match `expected-results.json`, and
+the g1 export contains only supported evidence. Reset or remove the isolated
+database after the run.
+
+For a real-browser check on this integration branch, run `npm run test:e2e` with
+Google Chrome installed. Playwright builds the production app, starts it on
+`127.0.0.1:4318`, and resets the ignored `data/playwright.sqlite` before each
+test. It runs the synthetic workflow and a two-session stale-export check in
+desktop and mobile Chrome. The workflow checks actual JSON/HTML downloads,
+keyboard dashboard movement, and the mobile dashboard width.
+
 **Important:** `run-api-smoke-test.mjs` writes to the fictional local workspace via the actual `/api/workspace` endpoint. It assumes a freshly reset workspace and may fail if you start it in a modified workspace. Do not run it against a public/production server. The app's URL defaults to `http://127.0.0.1:4317`; for a separately authorized local test server set `GRANTPROOF_URL=http://host:port`.
 
 ## Manual visual test (screens)
@@ -72,3 +103,7 @@ On a clean reset, open the four app workspaces and follow these steps:
 ## Limits and honesty
 
 This pack is prepared and checked **offline** for file structure, unique IDs, valid dates and expected totals. It is **not proof that the app passes until the script runs against a running GrantProof instance**. The smoke test uses fixture generation; a real OpenAI Agents SDK call still needs separate testing with an authorized API key. Visual browser responsiveness, accessibility, login, and deployment are separate acceptance steps.
+
+## Verified local execution — November 7, 2026
+
+The fixture API pack has now passed against an isolated combined Part 1/Part 2 production build: 11 scenario groups with the 100-row stress case, including an explicit approval block while stress rows remain unallocated. All five records in `03-period-boundary-transactions.csv` were also checked through the API with `node tests/synthetic-boundaries-api.mjs` from the repo root. The combined engine/UI suite passed all 30 tests, with no skips. See [the verification receipt](verification-2026-11-07.json) for code revisions, exact totals and limits. These results use fictional fixture generation; live AI and native visual browser QA remain unverified.

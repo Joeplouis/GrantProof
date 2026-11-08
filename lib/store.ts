@@ -62,6 +62,7 @@ export type Approval = {
   snapshot: Snapshot;
   reviewer: string;
   at: string;
+  invalidatedAt?: string;
 };
 export type State = {
   sources: Source[];
@@ -139,7 +140,27 @@ export function read(db: Database.Database): State {
   ) as State;
 }
 export function save(db: Database.Database, s: State) {
-  db.transaction(() => {
+  const approvals = db.transaction(() => {
+    // Reject unsafe totals before replacing any saved records.
+    for (const grant of s.grants) spending(s, grant.id);
+    const priorApprovals = new Map(read(db).approvals.map((a) => [a.id, a]));
+    const now = new Date().toISOString();
+    const validity = new Map<string, { ready: boolean; hash: string }>();
+    const updatedApprovals = s.approvals.map((a) => {
+      const invalidatedAt =
+        priorApprovals.get(a.id)?.invalidatedAt || a.invalidatedAt;
+      if (invalidatedAt) return { ...a, invalidatedAt };
+      if (!validity.has(a.grantId))
+        validity.set(a.grantId, {
+          ready: reviewErrors(s, a.grantId).length === 0,
+          hash: hash(snapshot(s, a.grantId)),
+        });
+      const current = validity.get(a.grantId)!;
+      return current.ready && current.hash === a.hash
+        ? a
+        : { ...a, invalidatedAt: now };
+    });
+    const persisted = { ...s, approvals: updatedApprovals };
     const order = [
       "sources",
       "grants",
@@ -154,9 +175,12 @@ export function save(db: Database.Database, s: State) {
       db.prepare(`DELETE FROM ${name}`).run();
     for (const name of order) {
       const insert = db.prepare(`INSERT INTO ${name}(id,body) VALUES (?,?)`);
-      for (const row of s[name]) insert.run(row.id, JSON.stringify(row));
+      for (const row of persisted[name])
+        insert.run(row.id, JSON.stringify(row));
     }
+    return updatedApprovals;
   })();
+  s.approvals = approvals;
 }
 export const id = () => randomUUID();
 export const hash = (o: unknown) =>
@@ -172,29 +196,42 @@ export function validDate(s: string) {
     new Date(s).toISOString().slice(0, 10) === s
   );
 }
+function addCents(total: number, amount: number) {
+  const next = total + amount;
+  if (
+    !Number.isSafeInteger(total) ||
+    !Number.isSafeInteger(amount) ||
+    !Number.isSafeInteger(next)
+  )
+    throw Error("Money total exceeds the supported integer-cent range.");
+  return next;
+}
 export function spending(s: State, grantId: string) {
-  const g = s.grants.find((g) => g.id === grantId)!;
+  const g = s.grants.find((g) => g.id === grantId);
+  if (!g) throw Error("Unknown grant.");
   const rows = Object.entries(g.categories).map(([category, budget]) => {
+    if (!Number.isSafeInteger(budget) || budget < 0)
+      throw Error("Grant budgets must use nonnegative integer cents.");
     const spent = s.allocations
-      .filter(
-        (a) =>
+      .filter((a) => {
+        const t = s.transactions.find((t) => t.id === a.transactionId);
+        return (
           a.grantId === g.id &&
           a.category === category &&
-          inPeriod(
-            s.transactions.find((t) => t.id === a.transactionId)!.date,
-            g,
-          ),
-      )
-      .reduce((n, a) => n + a.cents, 0);
+          t &&
+          inPeriod(t.date, g)
+        );
+      })
+      .reduce((n, a) => addCents(n, a.cents), 0);
     return {
       category,
       budget,
       spent,
-      balance: budget - spent,
+      balance: addCents(budget, -spent),
       risk:
         spent > budget
           ? "Over budget"
-          : spent >= budget * 0.8
+          : budget > 0 && BigInt(spent) * 5n >= BigInt(budget) * 4n
             ? "Near limit"
             : "On track",
     };
@@ -203,9 +240,9 @@ export function spending(s: State, grantId: string) {
     start: g.start,
     end: g.end,
     rows,
-    budget: rows.reduce((n, r) => n + r.budget, 0),
-    spent: rows.reduce((n, r) => n + r.spent, 0),
-    balance: rows.reduce((n, r) => n + r.balance, 0),
+    budget: rows.reduce((n, r) => addCents(n, r.budget), 0),
+    spent: rows.reduce((n, r) => addCents(n, r.spent), 0),
+    balance: rows.reduce((n, r) => addCents(n, r.balance), 0),
   };
 }
 export function allocate(
@@ -220,51 +257,85 @@ export function allocate(
   if (
     !t ||
     !g ||
-    !(category in g.categories) ||
+    !Object.hasOwn(g.categories, category) ||
+    !Number.isSafeInteger(t.cents) ||
+    t.cents <= 0 ||
+    !validDate(t.date) ||
     !Number.isSafeInteger(cents) ||
     cents <= 0
   )
     throw Error("Choose a valid transaction, category and positive amount.");
+  if (
+    s.allocations.some(
+      (a) =>
+        a.transactionId === transactionId &&
+        (!Number.isSafeInteger(a.cents) || a.cents <= 0),
+    )
+  )
+    throw Error(
+      "Resolve invalid allocation amounts before allocating this transaction.",
+    );
   if (!inPeriod(t.date, g))
     throw Error("Transaction is outside the funder period.");
   if (
     s.allocations
       .filter((a) => a.transactionId === transactionId)
-      .reduce((n, a) => n + a.cents, 0) +
-      cents >
-    t.cents
+      .reduce((n, a) => addCents(n, a.cents), 0) >
+    t.cents - cents
   )
     throw Error("Allocation exceeds the transaction amount across grants.");
+  addCents(spending(s, grantId).spent, cents);
   s.allocations.push({ id: id(), transactionId, grantId, category, cents });
 }
-// RFC4180-style parsing, including quoted commas, escaped quotes and CRLF.
-export function parseCSV(text: string) {
+// Strict quoted fields: quoted commas/newlines and escaped quotes are data;
+// characters after a closing quote are rejected rather than silently rewritten.
+export function parseCSV(input: string) {
+  const text = input.replace(/^\uFEFF/, "");
   const rows: string[][] = [];
   let row: string[] = [],
     cell = "",
-    quoted = false;
+    mode: "field" | "quoted" | "closed" = "field";
+  const field = () => {
+    row.push(cell);
+    cell = "";
+    mode = "field";
+  };
+  const record = () => {
+    field();
+    rows.push(row);
+    row = [];
+  };
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
+    if (mode === "quoted") {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else mode = "closed";
+      } else cell += c;
+      continue;
+    }
+    if (c === ",") {
+      field();
+      continue;
+    }
+    if (c === "\r" || c === "\n") {
+      record();
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      continue;
+    }
+    if (mode === "closed")
+      throw Error(
+        "Malformed quote in CSV: unexpected character after closing quote.",
+      );
     if (c === '"') {
-      if (quoted && text[i + 1] === '"') {
-        cell += '"';
-        i++;
-      } else if (!cell || quoted) quoted = !quoted;
-      else throw Error("Malformed quote in CSV.");
-    } else if (!quoted && (c === "," || c === "\n")) {
-      row.push(cell.replace(/\r$/, ""));
-      cell = "";
-      if (c === "\n") {
-        rows.push(row);
-        row = [];
-      }
+      if (cell) throw Error("Malformed quote in CSV.");
+      mode = "quoted";
     } else cell += c;
   }
-  if (quoted) throw Error("Unclosed quoted CSV field.");
-  if (cell || row.length) {
-    row.push(cell.replace(/\r$/, ""));
-    rows.push(row);
-  }
+  if (mode === "quoted") throw Error("Unclosed quoted CSV field.");
+  if (cell || row.length || mode === "closed") record();
   return rows.filter((r) => r.some((c) => c.trim()));
 }
 export function importCSV(s: State, text: string) {
@@ -418,16 +489,57 @@ export function reviewErrors(s: State, grantId: string) {
   });
   if (snap.report.rows.some((r) => r.balance < 0))
     errors.push("Resolve over-budget categories.");
-  if (
-    s.transactions.some(
-      (t) =>
-        inPeriod(t.date, snap.grant) &&
-        s.allocations
-          .filter((a) => a.transactionId === t.id)
-          .reduce((n, a) => n + a.cents, 0) < t.cents,
+  for (const allocation of s.allocations) {
+    const transaction = s.transactions.find(
+      (t) => t.id === allocation.transactionId,
+    );
+    if (
+      allocation.grantId !== grantId &&
+      (!transaction || !inPeriod(transaction.date, snap.grant))
     )
-  )
-    errors.push("Resolve unallocated transactions in the reporting period.");
+      continue;
+    const allocatedGrant = s.grants.find((g) => g.id === allocation.grantId);
+    if (
+      !transaction ||
+      !allocatedGrant ||
+      !Object.hasOwn(allocatedGrant.categories, allocation.category)
+    )
+      errors.push("Resolve invalid allocation categories or references.");
+    if (!Number.isSafeInteger(allocation.cents) || allocation.cents <= 0)
+      errors.push("Resolve invalid allocation amounts.");
+    if (
+      transaction &&
+      allocatedGrant &&
+      (!validDate(transaction.date) ||
+        !inPeriod(transaction.date, allocatedGrant))
+    )
+      errors.push("Resolve out-of-period or invalid-date allocations.");
+  }
+  for (const transaction of s.transactions.filter((t) =>
+    inPeriod(t.date, snap.grant),
+  )) {
+    if (
+      !Number.isSafeInteger(transaction.cents) ||
+      transaction.cents <= 0 ||
+      !validDate(transaction.date)
+    )
+      errors.push("Resolve invalid transaction amounts or dates.");
+    try {
+      const allocated = s.allocations
+        .filter((a) => a.transactionId === transaction.id)
+        .reduce((n, a) => addCents(n, a.cents), 0);
+      if (allocated < transaction.cents)
+        errors.push(
+          "Resolve unallocated transactions in the reporting period.",
+        );
+      if (allocated > transaction.cents)
+        errors.push("Resolve over-allocated transactions across grants.");
+    } catch {
+      errors.push(
+        "Resolve allocation totals outside the supported integer-cent range.",
+      );
+    }
+  }
   return [...new Set(errors)];
 }
 export function approve(s: State, grantId: string, reviewer: string) {
@@ -435,7 +547,7 @@ export function approve(s: State, grantId: string, reviewer: string) {
   if (errors.length) throw Error(errors.join("\n"));
   if (!reviewer.trim()) throw Error("Reviewer name is required.");
   const snap = snapshot(s, grantId);
-  const a = {
+  const a: Approval = {
     id: id(),
     grantId,
     hash: hash(snap),
@@ -448,7 +560,10 @@ export function approve(s: State, grantId: string, reviewer: string) {
 }
 export function currentApproval(s: State, g: string) {
   const a = s.approvals.filter((a) => a.grantId === g).at(-1);
-  return a && reviewErrors(s, g).length === 0 && a.hash === hash(snapshot(s, g))
+  return a &&
+    !a.invalidatedAt &&
+    reviewErrors(s, g).length === 0 &&
+    a.hash === hash(snapshot(s, g))
     ? a
     : undefined;
 }
