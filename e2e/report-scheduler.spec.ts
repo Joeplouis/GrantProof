@@ -26,7 +26,7 @@ test("background worker prepares a due report without an open app and leaves exp
   });
   await panel
     .getByLabel("Schedule Family Futures 2026", { exact: true })
-    .check();
+    .click();
   await expect(
     panel.getByLabel("Schedule Family Futures 2026", { exact: true }),
   ).toBeChecked();
@@ -73,7 +73,7 @@ test("background worker prepares a due report without an open app and leaves exp
   expect(after.scheduler.jobs).toHaveLength(1);
   await panel
     .getByLabel("Schedule Family Futures 2026", { exact: true })
-    .uncheck();
+    .click();
   await expect(
     panel.getByLabel("Schedule Family Futures 2026", { exact: true }),
   ).not.toBeChecked();

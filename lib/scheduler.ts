@@ -90,9 +90,13 @@ export async function schedulerTick(
     ).run(owner, stamp + 180000, now.toISOString());
     // An expired running job may already have consumed API calls. Require staff
     // retry instead of silently repeating work after a crash.
-    for (const job of schedulerStatus(db, stamp).jobs.filter(
-      (j) => j.status === "running",
-    )) {
+    const running = db
+      .prepare(
+        "SELECT body FROM report_jobs WHERE json_extract(body, '$.status')='running'",
+      )
+      .all() as { body: string }[];
+    for (const row of running) {
+      const job = JSON.parse(row.body) as ScheduledJob;
       job.status = "interrupted";
       job.finishedAt = now.toISOString();
       job.message =
@@ -120,6 +124,15 @@ export async function schedulerTick(
       (g) => g.reportDue && g.reportDue <= dueDate(now),
     );
     for (const grant of selected.slice(0, 12)) {
+      const ownership = db
+        .prepare("SELECT owner,lease FROM report_worker WHERE id='worker'")
+        .get() as { owner: string; lease: number } | undefined;
+      if (
+        !ownership ||
+        ownership.owner !== owner ||
+        ownership.lease <= Date.now()
+      )
+        break;
       const config = schedulerStatus(db).schedules.find(
         (s) => s.grantId === grant.id,
       );
@@ -162,7 +175,7 @@ export async function schedulerTick(
           );
           if (
             lock.owner !== owner ||
-            lock.lease < Date.now() ||
+            lock.lease <= Date.now() ||
             !latestConfig?.enabled ||
             latestConfig.live !== config.live ||
             hash(read(db)) !== before
@@ -186,6 +199,12 @@ export async function schedulerTick(
           );
         })();
       } catch {
+        // A successor may have recovered this job after a missed heartbeat.
+        // The stale worker must not overwrite its receipt or start more work.
+        const lock = db
+          .prepare("SELECT owner,lease FROM report_worker WHERE id='worker'")
+          .get() as { owner: string; lease: number } | undefined;
+        if (!lock || lock.owner !== owner || lock.lease <= Date.now()) break;
         job.status = "failed";
         job.finishedAt = new Date().toISOString();
         job.message =

@@ -146,3 +146,55 @@ test("expired running jobs require manual recovery instead of repeated API calls
     db.close();
   }
 });
+
+test("a worker that loses its lease cannot overwrite recovery or process another grant", async () => {
+  const db = setup();
+  try {
+    const state = read(db);
+    state.grants[1].reportDue = dueDate(new Date());
+    save(db, state);
+    setSchedule(db, {
+      grantId: state.grants[1].id,
+      enabled: true,
+      live: false,
+    });
+    let calls = 0;
+    await schedulerTick(db, {
+      prepare: async (s, g, live) => {
+        calls++;
+        const job = schedulerStatus(db).jobs[0];
+        job.status = "interrupted";
+        job.message = "Recovered by successor; review required.";
+        db.prepare("UPDATE report_jobs SET body=? WHERE id=?").run(
+          JSON.stringify(job),
+          job.id,
+        );
+        db.prepare(
+          "UPDATE report_worker SET owner='successor', lease=? WHERE id='worker'",
+        ).run(Date.now() + 180000);
+        return prepareGrant(s, g, live);
+      },
+    });
+    assert.equal(calls, 1);
+    assert.equal(read(db).drafts.length, 0);
+    assert.equal(schedulerStatus(db).jobs[0].status, "interrupted");
+    assert.equal(
+      schedulerStatus(db).jobs[0].message,
+      "Recovered by successor; review required.",
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test("an idle worker becomes offline after missed heartbeats", async () => {
+  const db = setup();
+  try {
+    await schedulerTick(db);
+    const heartbeat = Date.parse(schedulerStatus(db).heartbeat!);
+    assert.equal(schedulerStatus(db, heartbeat + 89999).active, true);
+    assert.equal(schedulerStatus(db, heartbeat + 90000).active, false);
+  } finally {
+    db.close();
+  }
+});
