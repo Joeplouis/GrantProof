@@ -27,9 +27,9 @@ To reproduce the browser run, install dependencies with `npm ci`, ensure Google 
 
 ## Remaining checks
 
-Part 3's README is already included. Its fixture/API compatibility, two additional browser checks, and successful November 8 live SDK/engine check are recorded in [the Part 3 integration status](PART3-INTEGRATION.md).
+Part 3's README is already included. Its fixture/API compatibility, SDK/engine check, and completed live browser journey are recorded in [the Part 3 integration status](PART3-INTEGRATION.md) and [live browser acceptance](LIVE-BROWSER-QA.md).
 
-- One authorized live OpenAI SDK generation passed on November 8, with two claims, zero gaps, and a successful engine approval seal. Broader model evaluations and a live UI/API browser journey remain untested.
+- The authorized live SDK check and full live UI/API browser journey passed on November 8. All three parts completed evidence review, live generation, spending, approval, downloads, and edit invalidation together. Broader model evaluations remain outside these checks.
 - Chromium screenshot inspection is complete at desktop, Pixel 7, and compact-phone sizes. See [visual QA](VISUAL-QA.md) for the mobile layout fix, screenshots, and seven passing browser checks. Physical-device and Safari checks remain outside this review.
 - The app still runs on loopback only. No public deployment, funder submission, or real nonprofit data is included.
 

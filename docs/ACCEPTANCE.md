@@ -25,7 +25,7 @@ Fictional demo data only. No production records, submissions, deployments or mes
 | TypeScript / production build                  | PASS — `npm run typecheck`; `npm run build` (Next.js 16.4.5).                                                                                                                                          |
 | Real-browser functional QA                     | PASS on the integration branch — Playwright desktop/mobile Chrome runs synthetic source and CSV imports, evidence and drafts, real HTML/JSON downloads, approval invalidation, keyboard layout persistence, and a two-session stale-export check. |
 | Screenshot visual QA | PASS — Codex inspected desktop, Pixel 7, and compact-phone screen/dialog captures; corrected mobile money layout. See [visual QA](VISUAL-QA.md). Physical devices and Safari remain untested. |
-| Live OpenAI generation                         | PASS for one live SDK/engine check on November 8 — two claims, zero gaps, zero validator errors, approval seal accepted. See [receipt](qa/2026-11-08/live-agent-receipt.json). A live UI/API browser journey remains untested.                                        |
+| Live OpenAI generation                         | PASS — the November 8 live SDK check and full browser journey passed. Two live browser drafts, reconciled spending, sealed downloads, reload persistence, and edit invalidation verified; see [live browser QA](LIVE-BROWSER-QA.md).                                        |
 | Actual submission-tab deliverable fields       | **NOT VERIFIED** — official URL returned a client-rendered shell; browser unavailable. See demo checklist.                                                                                             |
 
 ## Reproduce
